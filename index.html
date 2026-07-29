@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#1a3a5c">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Ark Store POS</title>
+<title>ARK Store POS</title>
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#1a3a5c" id="themeColorMeta" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -279,7 +279,7 @@ td.r{text-align:right}
       <img id="tbLogoImg" src="" alt="" style="width:28px;height:28px;object-fit:contain;display:none;border-radius:5px" />
       <div id="tbLogoInitials" style="width:28px;height:28px;border-radius:5px;background:rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;letter-spacing:0">MS</div>
     </div>
-    <span id="storeNameDisplay">Ark Store POS</span>
+    <span id="storeNameDisplay">ARK Store POS</span>
     <span style="font-size:9px;background:rgba(46,204,113,.15);color:var(--green);padding:2px 8px;border-radius:8px;border:1px solid rgba(46,204,113,.3)">
       <span class="save-dot"></span>Auto-save ON
     </span>
@@ -302,7 +302,8 @@ td.r{text-align:right}
   <div class="ntab" id="nt-reports" onclick="showTab('reports')">&#128200; Reports</div>
   <div class="ntab" id="nt-history" onclick="showTab('history')">&#128336; History <span class="nbadge" id="badgeHist">0</span></div>
   <div class="ntab" id="nt-customers" onclick="showTab('customers')">&#128101; Customers <span class="nbadge" id="badgeCust">0</span></div>
-  <div class="ntab" id="nt-settings" onclick="showTab('settings')" style="margin-left:auto">&#9881; Settings</div>
+  <div class="ntab" id="nt-waste" onclick="showTab('waste')">&#128184; Waste/Exp</div>
+<div class="ntab" id="nt-settings" onclick="showTab('settings')" style="margin-left:auto">&#9881; Settings</div>
 </div>
 
 <!-- SELL -->
@@ -597,6 +598,55 @@ td.r{text-align:right}
   </div>
 </div>
 
+<div class="panel" id="panel-waste">
+  <div class="pbody">
+    <!-- WASTE LOG -->
+    <div class="psec">
+      <div class="pstitle">&#128465; Log Waste / Spoilage</div>
+      <div class="rg">
+        <div class="fg full"><label>Product / Item</label>
+          <input id="wst-prod" placeholder="e.g. Expired Chippy, Spoiled Milk..." /></div>
+        <div class="fg"><label>Qty Wasted</label>
+          <input id="wst-qty" type="number" min="1" placeholder="1" /></div>
+        <div class="fg"><label>Est. Cost per Unit (&#8369;)</label>
+          <input id="wst-cost" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="fg full"><label>Reason</label>
+          <input id="wst-reason" placeholder="e.g. Expired, Dropped, Damaged..." /></div>
+      </div>
+      <button class="abtn" style="width:100%;margin-top:6px" onclick="logWaste()">&#10003; Log Waste</button>
+    </div>
+    <!-- EXPENSE LOG -->
+    <div class="psec">
+      <div class="pstitle">&#128176; Log Expense</div>
+      <div class="rg">
+        <div class="fg full"><label>Description *</label>
+          <input id="exp-desc" placeholder="e.g. Electricity bill, Delivery fee, Supplies..." /></div>
+        <div class="fg"><label>Amount (&#8369;) *</label>
+          <input id="exp-amt" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="fg"><label>Category</label>
+          <select id="exp-cat">
+            <option>Utilities</option><option>Supplies</option><option>Rent</option>
+            <option>Delivery</option><option>Salaries</option><option>Maintenance</option><option>Other</option>
+          </select></div>
+      </div>
+      <button class="abtn" style="width:100%;margin-top:6px" onclick="logExpense()">&#10003; Log Expense</button>
+    </div>
+    <!-- SUMMARY -->
+    <div class="psec">
+      <div class="pstitle" style="justify-content:space-between">
+        <span>&#128200; Today's Summary</span>
+        <button onclick="clearWasteExpToday()" style="background:none;border:1px solid #4a1a1a;border-radius:3px;color:var(--red);font-size:10px;padding:2px 8px;cursor:pointer">Clear Today</button>
+      </div>
+      <div id="we-summary"></div>
+    </div>
+    <!-- LOG TABLE -->
+    <div class="psec">
+      <div class="pstitle">&#128337; Recent Entries</div>
+      <div id="we-log" style="display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL OVERLAY -->
 <div class="moverlay" id="mw"></div>
 
@@ -627,7 +677,7 @@ const LS = {
 
 let USERS = LS.get('ark_store_users',[{"id":1,"name":"Reymar","role":"Manager","pin":"1234","color":"#8e44ad"},{"id":2,"name":"Khalid","role":"Cashier","pin":"1111","color":"#1a5c8a"},{"id":3,"name":"Steffanie","role":"Cashier","pin":"2222","color":"#1a6e3a"}]);
 
-let STORE = LS.get('ark_store_store',{"name":"Ark Store","addr":"Your one-stop neighborhood shop","tin":"000-000-000-000","phrase":"This serve as your official receipt."});
+let STORE = LS.get('ark_store_store',{"name":"ARK Store","addr":"Your one-stop neighborhood shop","tin":"000-000-000-000","phrase":"This serve as your official receipt."});
 
 let prods      = LS.get('ark_store_prods',[]);
 let customers  = LS.get('ark_store_customers',[]);
@@ -837,6 +887,7 @@ function _openTab(t){
   if(t==='history') renderHistory();
   if(t==='customers'){ renderCustomers(); buildCustDropdown(); }
   if(t==='settings') loadSettings();
+  if(t==='waste'){ renderWELog(); renderWESummary(); }
   if(t==='reg') setTimeout(()=>$('rbc').focus(),80);
   if(t==='sell') setTimeout(focusScan,80);
   updateBadges();
@@ -1227,7 +1278,7 @@ function regItem(){
   const code=$('rcode').value.trim()||autoCode();
   prods.push({bc,name:nm,price:pr,cost:co,stock:st,unit:un,cat,rl,sup,code});
   ['rbc','rnm','rpr','rco','rst','rrl','rsup','rcode'].forEach(id=>{ const el=$(id); if(el) el.value=''; });
-  saveAll(); updateBadges(); toast('Registered: '+nm);
+  saveAll(); updateBadges(); buildRawCats(); toast('Registered: '+nm);
   openModal(`<div class="mbox">
     ${mHead('&#10003; Item registered successfully')}
     <div class="minfobox">
@@ -1314,7 +1365,7 @@ function editItemModal(idx){
         <div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Reorder level</label>
           <input id="ep-rl" type="number" min="0" value="${p.rl}" style="width:100%;height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:#fff;font-size:11px;padding:0 8px;outline:none" /></div>
       </div>
-      <div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Supplier</label>
+      <div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Category</label><input id="ep-cat" value="${p.cat}" style="width:100%;height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:#fff;font-size:11px;padding:0 8px;outline:none" /></div><div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Unit</label><input id="ep-unit" value="${p.unit||'pcs'}" style="width:100%;height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:#fff;font-size:11px;padding:0 8px;outline:none" /></div><div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Supplier</label>
         <input id="ep-sup" value="${(p.sup||'').replace(/"/g,'&quot;')}" style="width:100%;height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:#fff;font-size:11px;padding:0 8px;outline:none" /></div>
     </div>
     <button class="mok" style="margin-top:12px" onclick="saveEdit(${idx})">Save changes</button>
@@ -1328,7 +1379,9 @@ function saveEdit(idx){
   prods[idx].stock=parseInt($('ep-stock').value)||0;
   prods[idx].rl=parseInt($('ep-rl').value)||5;
   prods[idx].sup=$('ep-sup').value.trim();
-  saveAll(); closeModal(); renderRaw(); toast('Item updated');
+  if($('ep-cat')) prods[idx].cat=$('ep-cat').value.trim()||prods[idx].cat;
+  if($('ep-unit')) prods[idx].unit=$('ep-unit').value.trim()||prods[idx].unit;
+  saveAll(); closeModal(); buildRawCats(); renderRaw(); toast('Item updated');
 }
 
 function deleteItem(idx){
@@ -1689,13 +1742,13 @@ function importData(e){
 
 function clearTransactions(){
   if(!confirm('Clear all transaction history? This cannot be undone.')) return;
-  requireMgr(()=>{ txnHistory=[]; todaySales=0; todayTxns=0; todayProfit=0; invNo=1; saveAll(); updateBadges(); toast('Transaction history cleared','2000','#e74c3c'); });
+  requireMgr(()=>{ txnHistory=[]; todaySales=0; todayTxns=0; todayProfit=0; invNo=1; wasteLogs=[]; expenseLogs=[]; saveAll(); updateBadges(); toast('Transaction history cleared','2000','#e74c3c'); });
 }
 
 function clearAllData(){
   if(!confirm('Reset ALL data (products, customers, history)? This cannot be undone.')) return;
   requireMgr(()=>{
-    prods=[]; customers=[]; txnHistory=[]; stockLogs=[]; invNo=1; todaySales=0; todayTxns=0; todayProfit=0;
+    prods=[]; customers=[]; txnHistory=[]; stockLogs=[]; invNo=1; todaySales=0; todayTxns=0; todayProfit=0; wasteLogs=[]; expenseLogs=[];
     saveAll(); updateBadges(); renderStockLog(); toast('All data cleared','2000','#e74c3c');
   });
 }
@@ -1768,6 +1821,123 @@ if('serviceWorker' in navigator){
   var imgTag='<img src="'+url+'" style="'+style+'"/>';
   document.querySelectorAll(".tb-title-logo").forEach(function(el){el.innerHTML=imgTag;});
 })();
+
+/* == WASTE & EXPENSES MODULE == */
+var wasteLogs   = LS.get("pos_waste_logs",[]).map(function(l){return Object.assign({},l,{date:new Date(l.date)});});
+var expenseLogs = LS.get("pos_expense_logs",[]).map(function(l){return Object.assign({},l,{date:new Date(l.date)});});
+
+function saveWE(){
+  LS.set("pos_waste_logs",wasteLogs);
+  LS.set("pos_expense_logs",expenseLogs);
+}
+
+function todayStr(){ return new Date().toDateString(); }
+
+function logWaste(){
+  var prod=($("wst-prod").value||"").trim();
+  var qty=parseFloat($("wst-qty").value)||1;
+  var cost=parseFloat($("wst-cost").value)||0;
+  var reason=($("wst-reason").value||"").trim()||"No reason";
+  if(!prod){toast("Product name required",1500,"#e74c3c");return;}
+  wasteLogs.unshift({prod:prod,qty:qty,cost:cost,total:qty*cost,reason:reason,date:new Date()});
+  ["wst-prod","wst-qty","wst-cost","wst-reason"].forEach(function(id){var el=$(id);if(el)el.value="";});
+  saveWE();renderWELog();renderWESummary();
+  toast("Waste logged: "+prod+" x"+qty);
+}
+
+function logExpense(){
+  var desc=($("exp-desc").value||"").trim();
+  var amt=parseFloat($("exp-amt").value)||0;
+  var cat=$("exp-cat").value;
+  if(!desc||amt<=0){toast("Description and amount required",1500,"#e74c3c");return;}
+  expenseLogs.unshift({desc:desc,amt:amt,cat:cat,date:new Date()});
+  ["exp-desc","exp-amt"].forEach(function(id){var el=$(id);if(el)el.value="";});
+  saveWE();renderWELog();renderWESummary();
+  toast("Expense logged: "+desc+" "+peso(amt));
+}
+
+function renderWESummary(){
+  var el=$("we-summary");if(!el)return;
+  var today=todayStr();
+  var tw=wasteLogs.filter(function(l){return new Date(l.date).toDateString()===today;});
+  var te=expenseLogs.filter(function(l){return new Date(l.date).toDateString()===today;});
+  var totalW=tw.reduce(function(s,l){return s+l.total;},0);
+  var totalE=te.reduce(function(s,l){return s+l.amt;},0);
+  var netP=todayProfit-totalW-totalE;
+  var netColor=netP>=0?"#2ecc71":"#e74c3c";
+  var netBorder=netP>=0?"#1e5c32":"#5a2222";
+  var h="";
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  h+='<div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:10px">';
+  h+='<div style="font-size:10px;color:var(--text3);margin-bottom:4px">Total Waste Cost</div>';
+  h+='<div style="font-size:16px;font-weight:600;color:#e74c3c;font-family:monospace">'+peso(totalW)+'</div>';
+  h+='<div style="font-size:10px;color:#4a6a80">'+tw.length+" entries today</div></div>";
+  h+='<div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:10px">';
+  h+='<div style="font-size:10px;color:var(--text3);margin-bottom:4px">Total Expenses</div>';
+  h+='<div style="font-size:16px;font-weight:600;color:#e67e22;font-family:monospace">'+peso(totalE)+'</div>';
+  h+='<div style="font-size:10px;color:#4a6a80">'+te.length+" entries today</div></div>";
+  h+='<div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:10px">';
+  h+='<div style="font-size:10px;color:var(--text3);margin-bottom:4px">Gross Profit (Sales)</div>';
+  h+='<div style="font-size:16px;font-weight:600;color:#2ecc71;font-family:monospace">'+peso(todayProfit)+"</div></div>";
+  h+='<div style="background:var(--bg3);border:1px solid '+netBorder+';border-radius:4px;padding:10px">';
+  h+='<div style="font-size:10px;color:var(--text3);margin-bottom:4px">Net Profit</div>';
+  h+='<div style="font-size:16px;font-weight:700;color:'+netColor+';font-family:monospace">'+peso(netP)+"</div>";
+  h+='<div style="font-size:10px;color:#4a6a80">Sales - Waste - Expenses</div></div>';
+  h+="</div>";
+  el.innerHTML=h;
+}
+
+function renderWELog(){
+  var el=$("we-log");if(!el)return;
+  var all=[];
+  wasteLogs.slice(0,20).forEach(function(l){
+    all.push({label:l.prod+" x"+l.qty,sub:l.reason,amt:l.total,date:l.date,color:"#e74c3c"});
+  });
+  expenseLogs.slice(0,20).forEach(function(l){
+    all.push({label:l.desc,sub:l.cat,amt:l.amt,date:l.date,color:"#e67e22"});
+  });
+  all.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  if(!all.length){el.innerHTML='<div style="font-size:11px;color:#2a4a6a;text-align:center;padding:16px">No entries yet</div>';return;}
+  el.innerHTML=all.slice(0,30).map(function(x){
+    var d=new Date(x.date);
+    var ds=d.toLocaleString("en-PH",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;margin-bottom:3px">'+
+      '<div><div style="font-size:11px;color:#e8f4ff;font-weight:500">'+x.label+'</div>'+
+      '<div style="font-size:10px;color:var(--text3)">'+x.sub+" - "+ds+"</div></div>"+
+      '<div style="font-size:13px;font-weight:600;color:'+x.color+';font-family:monospace">-'+peso(x.amt)+"</div></div>";
+  }).join("");
+}
+
+function clearWasteExpToday(){
+  if(!confirm("Clear today waste and expense entries?"))return;
+  var today=todayStr();
+  wasteLogs=wasteLogs.filter(function(l){return new Date(l.date).toDateString()!==today;});
+  expenseLogs=expenseLogs.filter(function(l){return new Date(l.date).toDateString()!==today;});
+  saveWE();renderWELog();renderWESummary();
+  toast("Today entries cleared",2000,"#e74c3c");
+}
+
+// == WE Init ==
+renderWELog();
+renderWESummary();
+
+
+var _origRenderReports = renderReports;
+renderReports = function(){
+  _origRenderReports();
+  var sg = $("statGrid"); if(!sg) return;
+  var today = todayStr();
+  var tw = wasteLogs.filter(function(l){return new Date(l.date).toDateString()===today;}).reduce(function(s,l){return s+l.total;},0);
+  var te = expenseLogs.filter(function(l){return new Date(l.date).toDateString()===today;}).reduce(function(s,l){return s+l.amt;},0);
+  var netP = todayProfit - tw - te;
+  var nc = netP>=0?"#2ecc71":"#e74c3c";
+  var existing = document.getElementById("sc-net-profit");
+  if(existing) existing.remove();
+  var div = document.createElement("div");
+  div.className="sc"; div.id="sc-net-profit";
+  div.innerHTML = "<div class=\"sl\">Net Profit</div><div class=\"sv\" style=\"color:"+nc+"\">"+peso(netP)+"</div><div class=\"ss\">Sales - Waste - Exp</div>";
+  sg.appendChild(div);
+};
 </script>
 
 <div style="text-align:center;padding:6px 12px;background:rgba(0,0,0,.3);border-top:1px solid rgba(255,255,255,.05);font-family:system-ui,sans-serif;"><div style="font-size:10px;color:#4a6a80;">&#9889; Arroyo POS Engine &nbsp;&middot;&nbsp; 09063963052 &nbsp;&middot;&nbsp; areymar36@gmail.com</div></div>

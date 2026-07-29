@@ -1,4 +1,4 @@
-# Ark Store POS
+# ARK Store POS
 
 > Point of Sale system built with **Arroyo POS Engine** (MyStore POS)
 
@@ -34,4 +34,4 @@
 [Arroyo POS Engine](https://github.com/reymar-arroyo) — MyStore POS Deployer
 
 ---
-*Generated July 28, 2026*
+*Generated July 29, 2026*

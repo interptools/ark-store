@@ -1,7 +1,7 @@
 {
-  "name": "Ark Store POS",
+  "name": "ARK Store POS",
   "short_name": "ARK",
-  "description": "Ark Store — Point of Sale System",
+  "description": "ARK Store — Point of Sale System",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
