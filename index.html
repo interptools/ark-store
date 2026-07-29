@@ -1117,7 +1117,7 @@ function checkout(){
   const inv='INV-'+String(invNo++).padStart(4,'0');
   const rcpt={inv,items:[...cart],sub,disc,senDisc,vat,total,cash,change:payMethod==='cash'?cash-total:0,pay:payMethod,date:new Date(),cashier:currentUser?currentUser.name:'—',senior,custName:cust?cust.name:'Walk-in',ptsEarned};
   txnHistory.unshift(rcpt); lastRcpt=rcpt;
-  saveAll(); updateBadges(); showBIRReceipt(rcpt);
+  saveAll(); updateBadges(); if(typeof renderWESummary==='function') renderWESummary(); showBIRReceipt(rcpt);
 }
 
 function showBIRReceipt(r){
