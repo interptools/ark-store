@@ -617,7 +617,7 @@ td.r{text-align:right}
     <div class="pnp" id="pinNp"></div>
     <button class="pok" onclick="doLogin()">&#8594; Login</button>
     <div class="perr" id="pinErr"></div>
-    
+    <div class="lhint" id="loginHint"></div>
   </div>
 </div>
 
@@ -630,7 +630,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1785318022554",sk="arrs_build_stamp";
+  var stamp="1785318743302",sk="arrs_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("arrs_users");
     localStorage.removeItem("arrs_store");
@@ -657,6 +657,7 @@ let todayTxns  = LS.get('arrs_today_txns',0);
 let todayProfit= LS.get('arrs_today_profit',0);
 
 let cart=[], selRow=-1, npBuf='', lastRcpt=null, payMethod='cash';
+let pinAttempts=0, pinLocked=false;
 let heldTrans=null, currentUser=null, pinBuf='', selLoginUser=null;
 let demoIdx=0;
 
@@ -743,6 +744,8 @@ function buildLogin(){
     d.innerHTML=`<div class="uav" style="background:${u.color}25;color:${u.color}">${u.name[0]}</div><div><div class="uname">${u.name}</div><div class="urole">${u.role}</div></div>`;
     d.onclick=()=>selUser(u.id); lu.appendChild(d);
   });
+  const hint = document.getElementById('loginHint');
+  if(hint) hint.textContent = USERS.map(u=>u.name+' ('+u.role+')').join(' · ');
   buildPinNp(); updatePinDots();
 }
 
@@ -763,6 +766,7 @@ function selUser(id){
 }
 
 function pinKey(k){
+  if(pinLocked){ return; }
   if(!selLoginUser){ $('pinErr').textContent='Select a user first'; return; }
   if(k==='C') pinBuf='';
   else if(k==='Del') pinBuf=pinBuf.slice(0,-1);
@@ -779,6 +783,7 @@ function doLogin(){
   if(!selLoginUser){ $('pinErr').textContent='Select a user first'; return; }
   if(selLoginUser.pin===pinBuf){
     currentUser=selLoginUser;
+    pinAttempts=0; pinLocked=false;
     $('loginScreen').style.display='none';
     $('tbUser').textContent='\u{1F464} '+currentUser.name+' ['+currentUser.role+']';
     $('hCashier').textContent=currentUser.name;
@@ -787,8 +792,21 @@ function doLogin(){
     toast('Welcome, '+currentUser.name+'!');
     focusScan();
   } else {
-    $('pinErr').textContent='Wrong PIN. Try again.';
-    pinBuf=''; updatePinDots();
+    pinAttempts++;
+    if(pinAttempts>=3){
+      pinLocked=true;
+      $('pinErr').textContent='Too many attempts. Locked for 30 seconds.';
+      $('pinErr').style.color='#e74c3c';
+      pinBuf=''; updatePinDots();
+      setTimeout(()=>{
+        pinAttempts=0; pinLocked=false;
+        $('pinErr').textContent='';
+        $('pinErr').style.color='';
+      }, 30000);
+    } else {
+      $('pinErr').textContent='Wrong PIN. ' + (3-pinAttempts) + ' attempt(s) left.';
+      pinBuf=''; updatePinDots();
+    }
   }
 }
 
