@@ -198,11 +198,11 @@ td.r{text-align:right}
 .ss{font-size:10px;color:#4a6a80;margin-top:2px}
 
 /* LOGIN */
-.lscr{position:fixed;inset:0;background:rgba(10,24,38,.97);z-index:200;display:flex;align-items:center;justify-content:center}
-.lbox{background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:26px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lscr{position:fixed;inset:0;background:rgba(10,24,38,.97);z-index:200;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:16px 0}
+.lbox{background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:20px;width:min(320px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .ltitle{font-size:17px;font-weight:600;color:var(--text4);text-align:center;margin-bottom:4px}
 .lsub{font-size:11px;color:var(--text3);text-align:center;margin-bottom:16px}
-.lusers{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.lusers{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;max-height:40vh;overflow-y:auto}
 .ubtn{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:border-color .15s}
 .ubtn:hover{border-color:#5dade2}
 .ubtn.sel{border-color:#5dade2;background:var(--bg4)}
@@ -213,7 +213,7 @@ td.r{text-align:right}
 .pdot{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px;color:#5dade2;transition:background .15s}
 .pdot.filled{background:var(--bg2);border-color:#5dade2}
 .pnp{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px}
-.pbtn{height:42px;background:var(--bg2);border:none;border-radius:4px;color:var(--text2);font-size:17px;font-weight:500;cursor:pointer;transition:background .1s}
+.pbtn{height:38px;background:var(--bg2);border:none;border-radius:4px;color:var(--text2);font-size:16px;font-weight:500;cursor:pointer;transition:background .1s}
 .pbtn:hover{background:#1e4a70}
 .pbtn:active{transform:scale(.95)}
 .pbtn.clr{background:#5e3480;color:#fff}
@@ -630,7 +630,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1785318743302",sk="arrs_build_stamp";
+  var stamp="1785319440137",sk="arrs_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("arrs_users");
     localStorage.removeItem("arrs_store");
@@ -642,7 +642,14 @@ const LS = {
   set:(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ console.warn('localStorage full',e); } },
 };
 
-let USERS = LS.get('arrs_users',[{"id":1,"name":"Reymar","role":"Manager","pin":"1111","color":"#8e44ad"},{"id":2,"name":"Reese","role":"Cashier","pin":"2222","color":"#1a5c8a"},{"id":3,"name":"Steff","role":"Cashier","pin":"1234","color":"#1a6e3a"}]);
+let USERS = (()=>{
+  const u = LS.get('arrs_users',[{"id":1,"name":"Reymar","role":"Manager","pin":"1111","color":"#8e44ad"},{"id":2,"name":"Reese","role":"Cashier","pin":"2222","color":"#1a5c8a"},{"id":3,"name":"Steff","role":"Cashier","pin":"1234","color":"#1a6e3a"}]);
+  return u.length ? u : [
+    {id:1,name:'Admin',role:'Manager',pin:'1234',color:'#8e44ad'},
+    {id:2,name:'Cashier 1',role:'Cashier',pin:'1111',color:'#1a5c8a'},
+    {id:3,name:'Cashier 2',role:'Cashier',pin:'2222',color:'#1a6e3a'},
+  ];
+})();
 
 let STORE = LS.get('arrs_store',{"name":"ArrS","addr":"Your one-stop neighborhood shop","tin":"000-000-000-000","phrase":"This serves as your Official Receipt"});
 
