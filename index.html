@@ -613,7 +613,7 @@ td.r{text-align:right}
     <div class="pnp" id="pinNp"></div>
     <button class="pok" onclick="doLogin()">&#8594; Login</button>
     <div class="perr" id="pinErr"></div>
-    <div class="lhint">Admin: 1234 &nbsp;&#183;&nbsp; Cashier 1: 1111 &nbsp;&#183;&nbsp; Cashier 2: 2222</div>
+    
   </div>
 </div>
 
@@ -628,7 +628,7 @@ const LS = {
   set:(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ console.warn('localStorage full',e); } },
 };
 
-let USERS = LS.get('ark_store_users',[{"id":1,"name":"Reymar","role":"Manager","pin":"1234","color":"#8e44ad"},{"id":2,"name":"Khalid","role":"Cashier","pin":"1111","color":"#1a5c8a"},{"id":3,"name":"Steffanie","role":"Cashier","pin":"2222","color":"#1a6e3a"}]);
+let USERS = LS.get('ark_store_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"1212","color":"#8e44ad"},{"id":2,"name":"Khalid Khalid","role":"Cashier","pin":"1122","color":"#1a5c8a"},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"2211","color":"#1a6e3a"}]);
 
 let STORE = LS.get('ark_store_store',{"name":"ARK Store","addr":"Your one-stop neighborhood shop","tin":"000-000-000-000","phrase":"This serve as your official receipt."});
 
