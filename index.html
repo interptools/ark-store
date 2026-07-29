@@ -596,56 +596,9 @@ td.r{text-align:right}
       </div>
     </div>
   </div>
-<div class="panel" id="panel-waste">
-  <div class="pbody">
-    <!-- WASTE LOG -->
-    <div class="psec">
-      <div class="pstitle">&#128465; Log Waste / Spoilage</div>
-      <div class="rg">
-        <div class="fg full"><label>Product / Item</label>
-          <input id="wst-prod" placeholder="e.g. Expired Chippy, Spoiled Milk..." /></div>
-        <div class="fg"><label>Qty Wasted</label>
-          <input id="wst-qty" type="number" min="1" placeholder="1" /></div>
-        <div class="fg"><label>Est. Cost per Unit (&#8369;)</label>
-          <input id="wst-cost" type="number" min="0" step="0.01" placeholder="0.00" /></div>
-        <div class="fg full"><label>Reason</label>
-          <input id="wst-reason" placeholder="e.g. Expired, Dropped, Damaged..." /></div>
-      </div>
-      <button class="abtn" style="width:100%;margin-top:6px" onclick="logWaste()">&#10003; Log Waste</button>
-    </div>
-    <!-- EXPENSE LOG -->
-    <div class="psec">
-      <div class="pstitle">&#128176; Log Expense</div>
-      <div class="rg">
-        <div class="fg full"><label>Description *</label>
-          <input id="exp-desc" placeholder="e.g. Electricity bill, Delivery fee, Supplies..." /></div>
-        <div class="fg"><label>Amount (&#8369;) *</label>
-          <input id="exp-amt" type="number" min="0" step="0.01" placeholder="0.00" /></div>
-        <div class="fg"><label>Category</label>
-          <select id="exp-cat">
-            <option>Utilities</option><option>Supplies</option><option>Rent</option>
-            <option>Delivery</option><option>Salaries</option><option>Maintenance</option><option>Other</option>
-          </select></div>
-      </div>
-      <button class="abtn" style="width:100%;margin-top:6px" onclick="logExpense()">&#10003; Log Expense</button>
-    </div>
-    <!-- SUMMARY -->
-    <div class="psec">
-      <div class="pstitle" style="justify-content:space-between">
-        <span>&#128200; Today's Summary</span>
-        <button onclick="clearWasteExpToday()" style="background:none;border:1px solid #4a1a1a;border-radius:3px;color:var(--red);font-size:10px;padding:2px 8px;cursor:pointer">Clear Today</button>
-      </div>
-      <div id="we-summary"></div>
-    </div>
-    <!-- LOG TABLE -->
-    <div class="psec">
-      <div class="pstitle">&#128337; Recent Entries</div>
-      <div id="we-log" style="display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto"></div>
-    </div>
-  </div>
 </div>
 
-</div>
+<div class="panel" id="panel-waste"><div class="pbody"><div class="psec"><div class="pstitle" style="border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:8px">&#128465; Log Waste / Spoilage</div><div class="rg"><div class="fg full"><label>Product / Item *</label><input id="wst-prod" placeholder="e.g. Expired Chippy, Spoiled Milk..." /></div><div class="fg"><label>Qty Wasted</label><input id="wst-qty" type="number" min="1" placeholder="1" /></div><div class="fg"><label>Est. Cost / Unit (&#8369;)</label><input id="wst-cost" type="number" min="0" step="0.01" placeholder="0.00" /></div><div class="fg full"><label>Reason</label><input id="wst-reason" placeholder="e.g. Expired, Dropped, Damaged..." /></div></div><button class="abtn" style="width:100%;margin-top:8px" onclick="logWaste()">&#10003; Log Waste</button></div><div class="psec"><div class="pstitle" style="border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:8px">&#128176; Log Expense</div><div class="rg"><div class="fg full"><label>Description *</label><input id="exp-desc" placeholder="e.g. Electricity, Delivery fee, Supplies..." /></div><div class="fg"><label>Amount (&#8369;) *</label><input id="exp-amt" type="number" min="0" step="0.01" placeholder="0.00" /></div><div class="fg"><label>Category</label><select id="exp-cat"><option>Utilities</option><option>Supplies</option><option>Rent</option><option>Delivery</option><option>Salaries</option><option>Maintenance</option><option>Other</option></select></div></div><button class="abtn" style="width:100%;margin-top:8px" onclick="logExpense()">&#10003; Log Expense</button></div><div class="psec"><div class="pstitle" style="justify-content:space-between"><span>&#128200; Today's Summary</span><button onclick="clearWasteExpToday()" style="background:none;border:1px solid #4a1a1a;border-radius:3px;color:var(--red);font-size:10px;padding:2px 8px;cursor:pointer">Clear Today</button></div><div id="we-summary" style="margin-top:8px"></div></div><div class="psec"><div class="pstitle">&#128337; Recent Entries</div><div id="we-log" style="display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto;margin-top:8px"></div></div></div></div>
 
 <!-- MODAL OVERLAY -->
 <div class="moverlay" id="mw"></div>
@@ -878,7 +831,7 @@ function showTab(t){
 }
 
 function _openTab(t){
-  ['sell','reg','items','stock','reports','history','customers','settings'].forEach(n=>{
+  ['sell','reg','items','stock','reports','history','customers','waste','settings'].forEach(n=>{
     $('panel-'+n).classList.toggle('on',n===t);
     $('nt-'+n).classList.toggle('on',n===t);
   });
@@ -1068,7 +1021,7 @@ function processReturn(){
   const p=prods.find(x=>x.bc===bc||x.code===bc);
   if(!p){ toast('Product not found','1500','#e74c3c'); return; }
   p.stock+=qty; saveAll(); closeModal();
-  toast('Returned '+qty+'x '+p.name+' \u2014 Refund: '+peso(p.price*qty),'2500','#e74c3c');
+  var reason=$('retReason')?$('retReason').value.trim():'';toast('Returned '+qty+'x '+p.name+(reason?' ('+reason+')':'')+' - Refund: '+peso(p.price*qty),'2500','#e74c3c');
 }
 
 /* ════════════════════════════════════════
