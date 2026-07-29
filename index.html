@@ -626,7 +626,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1785295575452",sk="ark_store_build_stamp";
+  var stamp="1785296692445",sk="ark_store_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("ark_store_users");
     localStorage.removeItem("ark_store_store");
@@ -1166,7 +1166,7 @@ function showBIRReceipt(r){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
       <button onclick="closeModal();newTrans()" style="height:32px;background:#1a6e3a;color:#fff;border:none;border-radius:3px;font-size:12px;cursor:pointer;font-weight:500">+ New Transaction</button>
-      <button onclick="closeModal()" style="height:32px;background:var(--bg2);color:var(--text4);border:1px solid var(--border);border-radius:3px;font-size:12px;cursor:pointer">Close</button>
+      <button onclick="closeModal();newTrans()" style="height:32px;background:var(--bg2);color:var(--text4);border:1px solid var(--border);border-radius:3px;font-size:12px;cursor:pointer">Close</button>
     </div>
   </div>`);
 }
