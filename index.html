@@ -624,14 +624,13 @@ td.r{text-align:right}
    STATE & CONSTANTS
 ════════════════════════════════════════ */
 
-// == BOOTSTRAP: seed config on fresh deploy ==
+// == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp = "1785295430251";
-  var nsKey = "pos_build_stamp";
-  if(localStorage.getItem(nsKey) !== stamp){
-    localStorage.removeItem("pos_users");
-    localStorage.removeItem("pos_store");
-    localStorage.setItem(nsKey, stamp);
+  var stamp="1785295575452",sk="ark_store_build_stamp";
+  if(localStorage.getItem(sk)!==stamp){
+    localStorage.removeItem("ark_store_users");
+    localStorage.removeItem("ark_store_store");
+    localStorage.setItem(sk,stamp);
   }
 })();
 const LS = {
