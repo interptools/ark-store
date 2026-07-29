@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#1a3a5c">
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ARK Store POS</title>
+<title>ARROYO Store POS</title>
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#1a3a5c" id="themeColorMeta" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -279,7 +279,7 @@ td.r{text-align:right}
       <img id="tbLogoImg" src="" alt="" style="width:28px;height:28px;object-fit:contain;display:none;border-radius:5px" />
       <div id="tbLogoInitials" style="width:28px;height:28px;border-radius:5px;background:rgba(255,255,255,.18);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;letter-spacing:0">MS</div>
     </div>
-    <span id="storeNameDisplay">ARK Store POS</span>
+    <span id="storeNameDisplay">ARROYO Store POS</span>
     <span style="font-size:9px;background:rgba(46,204,113,.15);color:var(--green);padding:2px 8px;border-radius:8px;border:1px solid rgba(46,204,113,.3)">
       <span class="save-dot"></span>Auto-save ON
     </span>
@@ -465,6 +465,9 @@ td.r{text-align:right}
     <select class="tsel" id="rawStock" onchange="renderRaw()" style="width:90px"><option value="">All stock</option><option value="ok">In stock</option><option value="low">Low stock</option><option value="out">Out of stock</option></select>
     <span class="tcnt" id="rawCount">0</span>
     <button class="btn btn-g" onclick="showTab('reg')" style="height:28px;padding:0 10px">+ Add item</button>
+    <button class="btn btn-g" id="csvImportBtnItems" onclick="triggerCsvImport()" style="height:28px;padding:0 12px;background:#1a5c8a;border-color:#1a5c8a;">&#128194; Import CSV</button>
+    <a id="csvTemplateLink" download="products_template.csv" style="display:none"></a>
+    <button class="btn" onclick="downloadCsvTemplate()" style="height:28px;padding:0 10px;font-size:10px;color:var(--text3);background:transparent;border:1px solid var(--border);">&#11015; CSV Template</button>
   </div>
   <div class="twrap" style="flex:1">
     <table>
@@ -580,6 +583,7 @@ td.r{text-align:right}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
         <button class="abtn abtn-b" onclick="exportData()">&#8659; Export backup (JSON)</button>
         <button class="abtn abtn-b" onclick="document.getElementById('importFile').click()">&#8657; Import backup</button>
+        <button class="abtn abtn-b" onclick="triggerCsvImport()" style="background:#1a5c8a;">&#128194; Import products CSV</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)" />
       </div>
       <div style="font-size:10px;color:var(--text3)">
@@ -626,10 +630,10 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1785296692445",sk="ark_store_build_stamp";
+  var stamp="1785312141902",sk="arroyo_store_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
-    localStorage.removeItem("ark_store_users");
-    localStorage.removeItem("ark_store_store");
+    localStorage.removeItem("arroyo_store_users");
+    localStorage.removeItem("arroyo_store_store");
     localStorage.setItem(sk,stamp);
   }
 })();
@@ -638,19 +642,19 @@ const LS = {
   set:(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ console.warn('localStorage full',e); } },
 };
 
-let USERS = LS.get('ark_store_users',[{"id":1,"name":"Reymar A.","role":"Manager","pin":"1122","color":"#8e44ad"},{"id":2,"name":"Khalid Khalid Arroyo","role":"Cashier","pin":"1234","color":"#1a5c8a"},{"id":3,"name":"Steffanie Rae Arroyo","role":"Cashier","pin":"1111","color":"#1a6e3a"}]);
+let USERS = LS.get('arroyo_store_users',[{"id":1,"name":"Reymar A.","role":"Manager","pin":"1122","color":"#8e44ad"},{"id":2,"name":"Khalid Khalid Arroyo","role":"Cashier","pin":"1234","color":"#1a5c8a"},{"id":3,"name":"Steffanie Rae Arroyo","role":"Cashier","pin":"1111","color":"#1a6e3a"}]);
 
-let STORE = LS.get('ark_store_store',{"name":"ARK Store","addr":"Your one-stop neighborhood shop","tin":"000-000-000-000","phrase":"This serve as your official receipt."});
+let STORE = LS.get('arroyo_store_store',{"name":"ARROYO Store","addr":"Your one-stop neighborhood shop","tin":"000-000-000-000","phrase":"This serve as your official receipt."});
 
-let prods      = LS.get('ark_store_prods',[]);
-let customers  = LS.get('ark_store_customers',[]);
-let txnHistory = LS.get('ark_store_history',[]).map(t=>({...t,date:new Date(t.date)}));
-let stockLogs  = LS.get('ark_store_stocklogs',[]).map(l=>({...l,date:new Date(l.date)}));
-let invNo      = LS.get('ark_store_invno',1);
-let storeMode  = LS.get('ark_store_mode','super');
-let todaySales = LS.get('ark_store_today_sales',0);
-let todayTxns  = LS.get('ark_store_today_txns',0);
-let todayProfit= LS.get('ark_store_today_profit',0);
+let prods      = LS.get('arroyo_store_prods',[]);
+let customers  = LS.get('arroyo_store_customers',[]);
+let txnHistory = LS.get('arroyo_store_history',[]).map(t=>({...t,date:new Date(t.date)}));
+let stockLogs  = LS.get('arroyo_store_stocklogs',[]).map(l=>({...l,date:new Date(l.date)}));
+let invNo      = LS.get('arroyo_store_invno',1);
+let storeMode  = LS.get('arroyo_store_mode','super');
+let todaySales = LS.get('arroyo_store_today_sales',0);
+let todayTxns  = LS.get('arroyo_store_today_txns',0);
+let todayProfit= LS.get('arroyo_store_today_profit',0);
 
 let cart=[], selRow=-1, npBuf='', lastRcpt=null, payMethod='cash';
 let heldTrans=null, currentUser=null, pinBuf='', selLoginUser=null;
@@ -663,17 +667,17 @@ let _saveTimer=null;
 function saveAll(){
   clearTimeout(_saveTimer);
   _saveTimer=setTimeout(()=>{
-    LS.set('ark_store_prods',prods);
-    LS.set('ark_store_customers',customers);
-    LS.set('ark_store_history',txnHistory);
-    LS.set('ark_store_stocklogs',stockLogs);
-    LS.set('ark_store_invno',invNo);
-    LS.set('ark_store_mode',storeMode);
-    LS.set('ark_store_today_sales',todaySales);
-    LS.set('ark_store_today_txns',todayTxns);
-    LS.set('ark_store_today_profit',todayProfit);
-    LS.set('ark_store_users',USERS);
-    LS.set('ark_store_store',STORE);
+    LS.set('arroyo_store_prods',prods);
+    LS.set('arroyo_store_customers',customers);
+    LS.set('arroyo_store_history',txnHistory);
+    LS.set('arroyo_store_stocklogs',stockLogs);
+    LS.set('arroyo_store_invno',invNo);
+    LS.set('arroyo_store_mode',storeMode);
+    LS.set('arroyo_store_today_sales',todaySales);
+    LS.set('arroyo_store_today_txns',todayTxns);
+    LS.set('arroyo_store_today_profit',todayProfit);
+    LS.set('arroyo_store_users',USERS);
+    LS.set('arroyo_store_store',STORE);
   },400);
 }
 
@@ -1775,6 +1779,168 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 </script>
+
+<!-- ══ CSV PRODUCT IMPORT ══════════════════════════════════════ -->
+<input type="file" id="csvImportInput" accept=".csv" style="display:none" onchange="handleCsvImport(event)" />
+<script>
+/* ── CSV Import helpers ───────────────────────────────────────── */
+function triggerCsvImport(){
+  const el = document.getElementById('csvImportInput');
+  if(el){ el.value=''; el.click(); }
+}
+
+function downloadCsvTemplate(){
+  const header = 'name,price,cost,stock,barcode,category,unit,supplier,reorder_level';
+  const rows = [
+    'Bigas 1kg,55,48,100,,Grocery,kg,,5',
+    'Coke 1.5L,78,65,50,4800888000000,Beverages,bottle,,5',
+    'Lucky Me Pancit Canton,12,9,200,,Instant noodles,pack,,10',
+    'Head and Shoulders 10ml,18,14,150,,Personal care,sachet,,10',
+    'Chippy 110g,25,20,80,,Snacks,pack,,5',
+  ];
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'products_template.csv';
+  a.click();
+}
+
+function parseCsv(text){
+  const lines = text.trim().split(/\r?\n/);
+  if(!lines.length) return [];
+  // Detect if first row is a header (contains 'name' or 'price')
+  const first = lines[0].toLowerCase();
+  const hasHeader = first.includes('name') || first.includes('price');
+  const dataLines = hasHeader ? lines.slice(1) : lines;
+
+  return dataLines.map(line => {
+    // Simple CSV parse (handles quoted fields)
+    const cols = [];
+    let cur = '', inQ = false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){ inQ=!inQ; }
+      else if(c===','&&!inQ){ cols.push(cur.trim()); cur=''; }
+      else cur+=c;
+    }
+    cols.push(cur.trim());
+
+    const get = (i, def='') => (cols[i]||'').replace(/^"|"$/g,'').trim() || def;
+    const name  = get(0);
+    if(!name) return null;
+
+    // Auto-generate barcode if empty
+    const bcRaw = get(4);
+    const bc = bcRaw || ('CSV'+Date.now().toString().slice(-6)+Math.floor(Math.random()*1000));
+
+    return {
+      bc:    bc,
+      code:  '',
+      name:  name,
+      price: parseFloat(get(1))||0,
+      cost:  parseFloat(get(2))||0,
+      stock: parseInt(get(3))||0,
+      cat:   get(5,'General'),
+      unit:  get(6,'pcs'),
+      sup:   get(7,''),
+      rl:    parseInt(get(8))||5,
+    };
+  }).filter(Boolean);
+}
+
+function autoCodeFromCsv(p){
+  const map={Beverages:'BV',Snacks:'SN','Canned goods':'CG',Condiments:'CD','Personal care':'PC',
+    Household:'HH',Dairy:'DY','Instant noodles':'IN','Bread and pastry':'BP',Frozen:'FZ',
+    Grocery:'GR',General:'GN'};
+  const prefix = map[p.cat] || p.cat.substring(0,2).toUpperCase() || 'GN';
+  const num = String(prods.length + 1).padStart(4,'0');
+  return prefix+'-'+num;
+}
+
+function handleCsvImport(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const items = parseCsv(ev.target.result);
+    if(!items.length){ toast('No valid rows found in CSV','2000','#e74c3c'); return; }
+
+    // Ask: replace or merge?
+    const msg = prods.length > 0
+      ? `CSV contains <strong>${items.length} item(s)</strong>.<br><br>What would you like to do with your <strong>${prods.length} existing product(s)</strong>?`
+      : `CSV contains <strong>${items.length} item(s)</strong>. Ready to import.`;
+
+    const btnStyle = 'height:32px;padding:0 14px;border:none;border-radius:4px;font-size:12px;font-weight:700;cursor:pointer;';
+
+    openModal(`<div class="mbox">
+      ${mHead('&#128194; Import Products from CSV')}
+      <div style="font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.7">${msg}</div>
+      ${prods.length > 0 ? `
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button style="${btnStyle}background:#962d22;color:#fff;" onclick="doCsvImport(${JSON.stringify(items).replace(/"/g,'&quot;')},'replace')">
+          &#9888; Replace all — overwrite ${prods.length} existing item(s)
+        </button>
+        <button style="${btnStyle}background:#1a6e3a;color:#fff;" onclick="doCsvImport(${JSON.stringify(items).replace(/"/g,'&quot;')},'merge')">
+          &#10010; Merge — add new, skip duplicates (by name)
+        </button>
+        <button style="${btnStyle}background:var(--bg3);color:var(--text2);border:1px solid var(--border);" onclick="closeModal()">
+          Cancel
+        </button>
+      </div>` : `
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button style="${btnStyle}background:#1a6e3a;color:#fff;" onclick="doCsvImport(${JSON.stringify(items).replace(/"/g,'&quot;')},'replace')">
+          &#10010; Import ${items.length} item(s)
+        </button>
+        <button style="${btnStyle}background:var(--bg3);color:var(--text2);border:1px solid var(--border);" onclick="closeModal()">Cancel</button>
+      </div>`}
+    </div>`);
+  };
+  reader.readAsText(file);
+}
+
+function doCsvImport(items, mode){
+  closeModal();
+  if(mode === 'replace'){
+    prods = [];
+  }
+  let added=0, skipped=0;
+  items.forEach(p => {
+    if(mode==='merge'){
+      const dup = prods.find(x=>x.name.toLowerCase()===p.name.toLowerCase());
+      if(dup){ skipped++; return; }
+    }
+    // Ensure unique barcode
+    let bc = p.bc;
+    while(prods.find(x=>x.bc===bc)){
+      bc = 'CSV'+Date.now().toString().slice(-5)+Math.floor(Math.random()*9999);
+    }
+    p.bc = bc;
+    if(!p.code) p.code = autoCodeFromCsv(p);
+    prods.push(p);
+    added++;
+  });
+  saveAll(); updateBadges(); renderRaw(); updateRawCatFilter();
+  const msg = mode==='replace'
+    ? `Replaced all products. ${added} item(s) imported.`
+    : `Merged: ${added} added, ${skipped} duplicate(s) skipped.`;
+  toast('✅ '+msg, 3000, '#1a6e3a');
+}
+
+function updateRawCatFilter(){
+  const sel = document.getElementById('rawCat');
+  if(!sel) return;
+  const existing = Array.from(sel.options).map(o=>o.value);
+  [...new Set(prods.map(p=>p.cat).filter(Boolean))].forEach(cat=>{
+    if(!existing.includes(cat)){
+      const o = document.createElement('option');
+      o.value = cat; o.textContent = cat;
+      sel.appendChild(o);
+    }
+  });
+}
+</script>
+
 <script>
 (function(){
   var d=document.getElementById("__bld_logo__");

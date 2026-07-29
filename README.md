@@ -1,4 +1,4 @@
-# ARK Store POS
+# ARROYO Store POS
 
 > Point of Sale system built with **Arroyo POS Engine** (MyStore POS)
 
