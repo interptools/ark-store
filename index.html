@@ -101,7 +101,7 @@ td.r{text-align:right}
 .empty-st svg{width:40px;height:40px;stroke:#1e3a52;fill:none;stroke-width:1.5;opacity:.5}
 
 /* RIGHT PANEL */
-.rpanel{display:flex;flex-direction:column;background:var(--bg1);overflow:hidden}
+.rpanel{display:flex;flex-direction:column;background:var(--bg1);overflow-y:auto;overflow-x:hidden}
 .nph{padding:5px 8px;border-bottom:1px solid var(--bg3);flex-shrink:0}
 .npkv{display:flex;align-items:center;gap:4px;margin-bottom:4px}
 .npkv label{font-size:10px;color:var(--text3);width:42px;flex-shrink:0}
@@ -142,7 +142,7 @@ td.r{text-align:right}
 .pm{height:24px;border:1px solid var(--border);border-radius:2px;background:var(--bg3);color:var(--text4);font-size:10px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;transition:all .1s}
 .pm:hover{background:var(--border)}
 .pm.on{background:var(--accent);color:#fff;border-color:#5dade2}
-.cobtn{margin:4px 8px;height:32px;background:#1a6e3a;color:#fff;border:none;border-radius:2px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.02em}
+.cobtn{margin:4px 8px;width:calc(100% - 16px);flex-shrink:0;height:36px;background:#1a6e3a;color:#fff;border:none;border-radius:2px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.02em}
 .cobtn:hover{background:#22a050}
 
 /* FNBAR */
@@ -596,8 +596,6 @@ td.r{text-align:right}
       </div>
     </div>
   </div>
-</div>
-
 <div class="panel" id="panel-waste">
   <div class="pbody">
     <!-- WASTE LOG -->
@@ -645,6 +643,8 @@ td.r{text-align:right}
       <div id="we-log" style="display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto"></div>
     </div>
   </div>
+</div>
+
 </div>
 
 <!-- MODAL OVERLAY -->
