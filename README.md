@@ -1,4 +1,4 @@
-# ARROYO Store POS
+# ArrS POS
 
 > Point of Sale system built with **Arroyo POS Engine** (MyStore POS)
 

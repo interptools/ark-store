@@ -1,7 +1,7 @@
 {
-  "name": "ARROYO Store POS",
-  "short_name": "ARK",
-  "description": "ARROYO Store — Point of Sale System",
+  "name": "ArrS POS",
+  "short_name": "MYStore",
+  "description": "ArrS — Point of Sale System",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
