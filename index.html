@@ -623,12 +623,23 @@ td.r{text-align:right}
 /* ════════════════════════════════════════
    STATE & CONSTANTS
 ════════════════════════════════════════ */
+
+// == BOOTSTRAP: seed config on fresh deploy ==
+(function(){
+  var stamp = "1785295110617";
+  var nsKey = "pos_build_stamp";
+  if(localStorage.getItem(nsKey) !== stamp){
+    localStorage.removeItem("pos_users");
+    localStorage.removeItem("pos_store");
+    localStorage.setItem(nsKey, stamp);
+  }
+})();
 const LS = {
   get:(k,def)=>{ try{ const v=localStorage.getItem(k); return v!==null?JSON.parse(v):def; }catch(e){ return def; } },
   set:(k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ console.warn('localStorage full',e); } },
 };
 
-let USERS = LS.get('ark_store_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"1212","color":"#8e44ad"},{"id":2,"name":"Khalid Khalid","role":"Cashier","pin":"1122","color":"#1a5c8a"},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"2211","color":"#1a6e3a"}]);
+let USERS = LS.get('ark_store_users',[{"id":1,"name":"Reymar A.","role":"Manager","pin":"1122","color":"#8e44ad"},{"id":2,"name":"Khalid Khalid Arroyo","role":"Cashier","pin":"1234","color":"#1a5c8a"},{"id":3,"name":"Steffanie Rae Arroyo","role":"Cashier","pin":"1111","color":"#1a6e3a"}]);
 
 let STORE = LS.get('ark_store_store',{"name":"ARK Store","addr":"Your one-stop neighborhood shop","tin":"000-000-000-000","phrase":"This serve as your official receipt."});
 
