@@ -1,7 +1,7 @@
 {
-  "name": "ArrS POS",
+  "name": "My Store POS",
   "short_name": "MYStore",
-  "description": "ArrS — Point of Sale System",
+  "description": "My Store — Point of Sale System",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
