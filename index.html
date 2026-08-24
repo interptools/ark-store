@@ -776,7 +776,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1787563292374",sk="my_tindahan_build_stamp";
+  var stamp="1787563854351",sk="my_tindahan_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("my_tindahan_users");
     localStorage.removeItem("my_tindahan_store");
@@ -852,7 +852,15 @@ let cart=[], selRow=-1, npBuf='', lastRcpt=null, payMethod='cash';
 let voidLogs = LS.get('my_tindahan_voidlogs',[]);
 let shiftLogs = LS.get('my_tindahan_shiftlogs',[]);
 let pendingRedeem=null;      // {custId, pts, amount}
-let pendingCredit = LS.get('my_tindahan_credit', null);   // {rt, amount, custName, date}
+/* A list, not a single slot. Merging two returns into one credit
+   destroyed the identity of the earlier one: it could never be
+   marked settled, and the later one claimed a value it never had. */
+let pendingCredits = (()=>{
+  const raw = LS.get('my_tindahan_credit', null);
+  if(!raw) return [];
+  if(Array.isArray(raw)) return raw;
+  return (raw.amount>0) ? [raw] : [];   // migrate v9.0 single-credit data
+})();
 let seniorInfo=null;         // {name, id} — required by BIR for 20% discount
 let pickCat='';
 let pinAttempts=0, pinLocked=false;
@@ -878,7 +886,7 @@ function saveAll(){
     LS.set('my_tindahan_shiftlogs',shiftLogs.slice(0,200));
     LS.set('my_tindahan_grand',grandTotals);
     LS.set('my_tindahan_shift',shift);
-    LS.set('my_tindahan_credit',pendingCredit);
+    LS.set('my_tindahan_credit',pendingCredits);
     LS.set('my_tindahan_bizdate',bizDate);
     LS.set('my_tindahan_mode',storeMode);
     LS.set('my_tindahan_today_sales',todaySales);
@@ -972,7 +980,7 @@ function cartTotals(){
 /* Grand total now comes from state, never from parsing DOM text. */
 const getGrand = ()=> cart.length ? cartTotals().total : 0;
 /* Credit that this cart can actually absorb. */
-const creditAvail = ()=> (pendingCredit && pendingCredit.amount>0) ? pendingCredit.amount : 0;
+const creditAvail = ()=> pendingCredits.reduce((s,c)=>s+(c.amount>0?c.amount:0),0);
 const creditOnCart= ()=> cart.length ? Math.min(creditAvail(), cartTotals().total) : 0;
 /* What the customer actually hands over. This is the ONLY figure
    the cash input, the change and the quick-tender keys may use. */
@@ -1937,10 +1945,9 @@ function processReturn(idx){
     };
     txnHistory.unshift(rcpt); lastRcpt=rcpt;
     if(mode==='exchange'){
-      /* Carry any existing credit forward rather than overwrite it. */
-      const carried = pendingCredit ? pendingCredit.amount : 0;
-      pendingCredit = { rt:rcpt.inv, amount:r2(refund+carried),
-        custName:t.custName||'Walk-in', date:new Date().toISOString() };
+      /* Queued in its own right, so it keeps its own reference. */
+      pendingCredits.push({ rt:rcpt.inv, amount:r2(refund),
+        custName:t.custName||'Walk-in', date:new Date().toISOString() });
     }
     saveAll(); updateBadges(); renderCart(); renderTiles(); renderShiftBar();
     if($('panel-history').classList.contains('on')) renderHistory();
@@ -2014,7 +2021,7 @@ function calcTotals(){
     if(cOn>0){
       cr.style.display='flex';
       $('tCredit').textContent='-'+peso(cOn);
-      $('tCreditLbl').textContent='Exchange credit'+(pendingCredit?' ('+pendingCredit.rt+')':'');
+      $('tCreditLbl').textContent='Exchange credit'+(pendingCredits.length?' ('+pendingCredits.map(function(c){return c.rt;}).join(', ')+')':'');
     } else cr.style.display='none';
   }
   const dr2=$('tDueRow');
@@ -2136,8 +2143,15 @@ function checkout(){
   }
   if($('hSenior').checked && !seniorInfo){ toast('Record the Senior/PWD ID first','2000','#e74c3c'); seniorIdModal(); return; }
   const t=cartTotals();
-  const creditUsed = pendingCredit ? Math.min(pendingCredit.amount, t.total) : 0;
-  const creditRef  = creditUsed ? pendingCredit.rt : null;
+  /* Spend oldest first, and remember exactly how much came from each. */
+  let creditUsed=0, _left=t.total; const _take=[];
+  pendingCredits.forEach(c=>{
+    if(_left<=0.004 || !(c.amount>0)) return;
+    const take=Math.min(c.amount,_left);
+    _take.push({rt:c.rt, take:r2(take)});
+    _left=r2(_left-take); creditUsed=r2(creditUsed+take);
+  });
+  const creditRef = _take.length ? _take.map(x=>x.rt).join(', ') : null;
   const due = r2(t.total - creditUsed);
   const cashGiven=parseFloat($('cashIn').value)||0;
   if(payMethod==='cash' && due>0 && cashGiven<due){ toast('Insufficient cash \u2014 need '+peso(due),'2000','#e74c3c'); return; }
@@ -2184,13 +2198,20 @@ function checkout(){
   };
   txnHistory.unshift(rcpt); lastRcpt=rcpt; pendingRedeem=null;
   if(creditUsed>0){
-    /* Two-way link: the return names the sale that settled it and
-       the sale names the return it drew on. */
-    const rt=txnHistory.find(x=>x.inv===creditRef);
-    if(rt) rt.settledBy=rcpt.inv;
-    const left=r2(pendingCredit.amount-creditUsed);
-    if(left>0.004){ pendingCredit={...pendingCredit, amount:left}; toast('Exchange credit left: '+peso(left),4000,'#f1c40f'); }
-    else pendingCredit=null;
+    _take.forEach(x=>{
+      const c=pendingCredits.find(y=>y.rt===x.rt); if(!c) return;
+      c.amount=r2(c.amount-x.take);
+      const rt=txnHistory.find(y=>y.inv===x.rt);
+      if(rt){
+        /* Two-way link, and a partial draw stays open for the rest. */
+        rt.settledBy = rt.settledBy ? (rt.settledBy+', '+rcpt.inv) : rcpt.inv;
+        rt.creditLeft = c.amount;
+        if(c.amount>0.004) rt.settledBy = null;   // still owes the customer
+      }
+    });
+    pendingCredits = pendingCredits.filter(c=>c.amount>0.004);
+    const left=creditAvail();
+    if(left>0.004) toast('Exchange credit left: '+peso(left),4000,'#f1c40f');
   }
   clearSaleState();                    // the basket is paid for; let go of it
   saveAll(); updateBadges(); renderShiftBar(); renderTiles();
@@ -2639,7 +2660,9 @@ function renderHistory(){
     const sign=(isVoidDoc||isRet)?'-':'';
     return '<tr>'+
       '<td style="font-family:\'Courier New\',monospace;font-size:10px;font-weight:600;color:'+col+'">'+esc(t.inv)+
-        (t.origInv?'<div style="font-size:9px;color:var(--text3)">\u2192 '+esc(t.origInv)+'</div>':'')+'</td>'+
+        (t.origInv?'<div style="font-size:9px;color:var(--text3)">\u2192 '+esc(t.origInv)+'</div>':'')+
+        (t.settledBy?'<div style="font-size:9px;color:#2ecc71">\u2714 settled by '+esc(t.settledBy)+'</div>':'')+
+        (isRet&&t.refundMode==='exchange'&&!t.settledBy?'<div style="font-size:9px;color:#e8c88a">credit open</div>':'')+'</td>'+
       '<td style="color:var(--text4);font-size:10px">'+new Date(t.date).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})+'</td>'+
       '<td style="font-size:10px;color:var(--text2);overflow:hidden;text-overflow:ellipsis">'+tag+
         esc(t.items.map(i=>i.name+'\u00d7'+i.qty).join(', '))+retTag+
@@ -2649,6 +2672,9 @@ function renderHistory(){
       '<td style="font-size:10px;color:var(--text3)">'+esc(t.cashier)+'</td>'+
       '<td style="white-space:nowrap">'+
         '<button onclick="openReceipt('+idx+')" style="background:none;border:1px solid var(--border);border-radius:2px;color:var(--text4);font-size:9px;padding:2px 5px;cursor:pointer;margin-right:2px">Receipt</button>'+
+        (isRet && t.refundMode==='exchange' && !t.settledBy
+          ? '<button onclick="recallCredit('+idx+')" style="background:#4a3a1a;border:1px solid #8a5a1a;border-radius:2px;color:#e8c88a;font-size:9px;padding:2px 5px;cursor:pointer;margin-right:2px">Use credit</button>'
+          : '')+
         (canRet?'<button onclick="startReturn('+idx+')" style="background:none;border:1px solid #5a3a1a;border-radius:2px;color:var(--orange);font-size:9px;padding:2px 5px;cursor:pointer;margin-right:2px">Return</button>':'')+
         (canVoid?'<button onclick="voidTxnModal('+idx+')" style="background:none;border:1px solid #4a1a1a;border-radius:2px;color:var(--red);font-size:9px;padding:2px 5px;cursor:pointer">Void</button>':'')+
       '</td></tr>';
@@ -4175,6 +4201,17 @@ function renderAlerts(){
     });
     el.innerHTML=h||'<div style="font-size:11px;color:#2a4a6a;text-align:center;padding:20px">Nothing expiring within '+e.win+' days.<br><span style="font-size:10px">Add expiry dates in Register Item, Stock-in, or by editing an item.</span></div>';
   }
+  var oc=txnHistory.filter(function(t){ return t.type==="return" && t.refundMode==="exchange" && !t.settledBy; });
+  var ocEl=$("expiryList");
+  if(ocEl && oc.length){
+    var oh='<div style="font-size:10px;font-weight:600;color:#e8c88a;margin:10px 0 6px">\u21a9 Unspent exchange credit</div>';
+    oc.forEach(function(t){
+      var amt=(t.creditLeft===undefined||t.creditLeft===null)?t.total:t.creditLeft;
+      oh+=alertRow(t.inv+" \u2014 "+esc(t.custName||"Walk-in"), peso(amt)+" owed", "#4a3a1a",
+        new Date(t.date).toLocaleDateString("en-PH")+" \u00b7 against "+esc(t.origInv||""));
+    });
+    ocEl.innerHTML += oh;
+  }
   var ls=$("lowStockAlerts");
   if(ls){
     var h2="";
@@ -4230,15 +4267,15 @@ applyScale();
 /* == EXCHANGE CREDIT == */
 function renderCreditBar(){
   var el=$("creditBar"); if(!el) return;
-  if(!pendingCredit || !(pendingCredit.amount>0)){ el.style.display="none"; el.innerHTML=""; return; }
+  if(!creditAvail()){ el.style.display="none"; el.innerHTML=""; return; }
   el.style.display="flex";
   /* Values are pulled into locals first. Building this inline meant nesting
      three levels of quoting, which is how the concatenation ended up being
      printed to the cashier as source text. HTML attributes below use single
      quotes so nothing needs escaping at all. */
-  var amt = peso(pendingCredit.amount);
-  var ref = esc(pendingCredit.rt);
-  var who = esc(pendingCredit.custName || "Walk-in");
+  var amt = peso(creditAvail());
+  var ref = esc(pendingCredits.map(function(c){ return c.rt; }).join(", "));
+  var who = esc((pendingCredits[0] && pendingCredits[0].custName) || "Walk-in");
   var h = "<span>&#8617; Exchange credit <b>" + amt + "</b> from <b>" + ref
         + "</b> (" + who + ") will be applied to this sale.</span>";
   h += "<button onclick='cancelCredit()' style='background:none;border:1px solid #4a1a1a;"
@@ -4247,14 +4284,39 @@ function renderCreditBar(){
   el.innerHTML = h;
 }
 function cancelCredit(){
-  if(!pendingCredit) return;
-  if(!confirm("Discard the "+peso(pendingCredit.amount)+" exchange credit from "+pendingCredit.rt+"?\n\nThe customer will no longer get it applied.")) return;
+  if(!creditAvail()) return;
+  var _refs = pendingCredits.map(function(c){ return c.rt; }).join(", ");
+  if(!confirm("Discard "+peso(creditAvail())+" of exchange credit ("+_refs+")?\n\nYou can recall it later from History.")) return;
   requireMgr(function(){
-    pendingCredit=null; saveAll(); renderCreditBar(); calcTotals();
+    pendingCredits=[]; saveAll(); renderCreditBar(); calcTotals();
     toast("Exchange credit discarded",2500,"#e74c3c");
   });
 }
 try{ renderCreditBar(); }catch(e){}
+
+
+
+/* Recall the credit from an exchange return that was never spent. */
+function recallCredit(idx){
+  var t=txnHistory[idx];
+  if(!t || t.type!=="return" || t.refundMode!=="exchange"){ toast("That document carries no exchange credit",2200,"#e74c3c"); return; }
+  if(t.settledBy){ toast(t.inv+" was already settled by "+t.settledBy,2800,"#f1c40f"); return; }
+  if(pendingCredits.some(function(c){ return c.rt===t.inv; })){ toast(t.inv+" is already queued for this sale",2200,"#f1c40f"); return; }
+  /* A partly-spent credit keeps its remainder in creditLeft. */
+  var amt = (t.creditLeft===undefined || t.creditLeft===null) ? t.total : t.creditLeft;
+  amt = r2(amt);
+  if(!(amt>0.004)){ toast("No credit left on "+t.inv,2200,"#f1c40f"); return; }
+  pendingCredits.push({ rt:t.inv, amount:amt, custName:t.custName||"Walk-in", date:new Date().toISOString() });
+  saveAll(); renderCreditBar(); renderHistory();
+  toast("Credit "+peso(amt)+" from "+t.inv+" queued \u2014 ring up the replacement item now",4500);
+  showTab("sell");
+}
+/* Count of returns still owing the customer goods. */
+function openCreditCount(){
+  return txnHistory.filter(function(t){
+    return t.type==="return" && t.refundMode==="exchange" && !t.settledBy;
+  }).length;
+}
 
 </script>
 
