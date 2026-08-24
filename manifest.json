@@ -1,13 +1,13 @@
 {
-  "name": "My Store POS",
-  "short_name": "MYStore",
-  "description": "My Store — Point of Sale System",
+  "name": "My Tindahan POS",
+  "short_name": "Tindahan",
+  "description": "My Tindahan — Point of Sale System",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
   "orientation": "any",
   "background_color": "#0f1e2d",
-  "theme_color": "#1a3a5c",
+  "theme_color": "#33e692",
   "icons": [
     {
       "src": "icon-192.png",

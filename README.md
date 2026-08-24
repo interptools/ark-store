@@ -1,4 +1,4 @@
-# My Store POS
+# My Tindahan POS
 
 > Point of Sale system built with **Arroyo POS Engine** (MyStore POS)
 
@@ -12,12 +12,14 @@
 2. Tap **⋮ menu** → **Add to Home Screen**
 3. Tap **Add** — your POS opens full screen like a native app
 
-## 🔑 Default PIN Credentials
+## 🔑 Sign in
 
-| User | PIN |
-|------|-----|
-| Admin | `1234` |
-| Cashier 1 | `1111` |
+Staff accounts were configured when this build was generated. PINs are
+stored hashed and are **not** listed here on purpose — this repository is
+public, and anything written in it can be read by anyone.
+
+> On first launch the app will prompt the manager to set fresh PINs.
+> Do that before taking any real money.
 
 ## 📁 Files
 
@@ -34,4 +36,4 @@
 [Arroyo POS Engine](https://github.com/reymar-arroyo) — MyStore POS Deployer
 
 ---
-*Generated August 13, 2026*
+*Generated August 24, 2026*
