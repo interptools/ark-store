@@ -474,7 +474,7 @@ td.r{text-align:right}
         <div class="trow vr"><span>VATable Sales</span><span id="tVatable">&#8369;0.00</span></div>
         <div class="trow vr"><span>VAT 12%</span><span id="tVat">&#8369;0.00</span></div>
         <div class="trow vr" id="tVatExRow" style="display:none"><span>VAT-Exempt Sales</span><span id="tVatEx">&#8369;0.00</span></div>
-        <div class="trow gr"><span>Total</span><span id="tGrand">&#8369;0.00</span></div>
+        <div class="trow gr"><span>Total</span><span id="tGrand">&#8369;0.00</span></div><div class="trow" id="tCreditRow" style="display:none;color:#e8c88a"><span id="tCreditLbl">Exchange credit</span><span id="tCredit">&#8369;0.00</span></div><div class="trow gr" id="tDueRow" style="display:none;color:var(--yellow)"><span>Amount due</span><span id="tDue">&#8369;0.00</span></div>
       </div>
       <div class="csec" id="cashSec">
         <div class="crow"><label>Cash</label><input class="cin" id="cashIn" type="number" min="0" placeholder="0.00" oninput="calcChange()" /></div>
@@ -776,7 +776,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1787562217876",sk="my_tindahan_build_stamp";
+  var stamp="1787563292374",sk="my_tindahan_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("my_tindahan_users");
     localStorage.removeItem("my_tindahan_store");
@@ -971,6 +971,12 @@ function cartTotals(){
 }
 /* Grand total now comes from state, never from parsing DOM text. */
 const getGrand = ()=> cart.length ? cartTotals().total : 0;
+/* Credit that this cart can actually absorb. */
+const creditAvail = ()=> (pendingCredit && pendingCredit.amount>0) ? pendingCredit.amount : 0;
+const creditOnCart= ()=> cart.length ? Math.min(creditAvail(), cartTotals().total) : 0;
+/* What the customer actually hands over. This is the ONLY figure
+   the cash input, the change and the quick-tender keys may use. */
+const amountDue   = ()=> cart.length ? r2(cartTotals().total - creditOnCart()) : 0;
 
 /* ════════════════════════════════════════════════════════════════════
    LOYALTY CARDS
@@ -2000,7 +2006,23 @@ function calcTotals(){
       (cust.card?esc(cust.card):'no card')+'</span> \u00b7 '+cust.points+' pts (+'+pts+')';
   } else $('hLoyalty').textContent='Walk-in \u2014 no card';
   renderCreditBar();
-  calcChange(); updateQuick(t.total);
+  /* Show the credit and the true amount due, so the person taking
+     the money is looking at the same number checkout() will use. */
+  const cOn=creditOnCart(), dueNow=r2(t.total-cOn);
+  const cr=$('tCreditRow');
+  if(cr){
+    if(cOn>0){
+      cr.style.display='flex';
+      $('tCredit').textContent='-'+peso(cOn);
+      $('tCreditLbl').textContent='Exchange credit'+(pendingCredit?' ('+pendingCredit.rt+')':'');
+    } else cr.style.display='none';
+  }
+  const dr2=$('tDueRow');
+  if(dr2){
+    if(cOn>0){ dr2.style.display='flex'; $('tDue').textContent=peso(dueNow); }
+    else dr2.style.display='none';
+  }
+  calcChange(); updateQuick(dueNow);
 }
 
 /* ── Senior / PWD: BIR requires the ID number and name on record ── */
@@ -2075,6 +2097,11 @@ function applyRedeem(){
 function clearRedeem(){ pendingRedeem=null; closeModal(); calcTotals(); toast('Redemption removed'); }
 
 function updateQuick(g){
+  if(cart.length && g<=0){
+    $('quickRow').innerHTML='<span style="font-size:11px;color:var(--green);padding:2px 4px">&#10003; Fully covered by exchange credit \u2014 no cash to collect</span>';
+    const ci=$('cashIn'); if(ci) ci.value='';
+    return;
+  }
   const amts=[...new Set([Math.ceil(g/10)*10,Math.ceil(g/50)*50,Math.ceil(g/100)*100,500,1000])].filter(a=>a>=g&&a<=5000).slice(0,4);
   $('quickRow').innerHTML=amts.map(a=>`<button class="qbtn" onclick="setQ(${a})">\u20b1${a}</button>`).join('');
 }
@@ -2083,7 +2110,7 @@ function setQ(v){ $('cashIn').value=v; calcChange(); }
 function calcChange(){
   const el=$('chgVal');
   if(payMethod!=='cash'){ el.textContent='\u2014'; el.style.color='var(--text3)'; return; }
-  const cash=parseFloat($('cashIn').value)||0, g=getGrand(), chg=cash-g;
+  const cash=parseFloat($('cashIn').value)||0, g=amountDue(), chg=cash-g;
   el.textContent=cash>0?peso(Math.max(0,chg)):'\u20b10.00';
   el.style.color=chg<0&&cash>0?'var(--red)':'var(--yellow)';
 }
@@ -2242,7 +2269,10 @@ function birHtml(r,isReprint){
     '<div class="birr"><span>VAT Zero-Rated Sales</span><span>'+peso(r.zeroRated||0)+'</span></div>'+
     '<div class="birdv"></div>'+
     '<div class="birtot"><span>TOTAL AMOUNT DUE</span><span>'+peso(r.total)+'</span></div>'+
-    (r.creditUsed>0?line('Less: exchange credit '+(r.creditRef||''),'-'+peso(r.creditUsed))+line('AMOUNT DUE',peso(r.amountDue)):'')+
+    /* birHtml has no line() helper of its own — that one belongs to
+       zSlipHtml. Emit the same .birr / .birtot rows it uses inline. */
+    (r.creditUsed>0?'<div class="birr"><span>Less: exchange credit '+esc(r.creditRef||'')+'</span><span>-'+peso(r.creditUsed)+'</span></div>'+
+      '<div class="birtot"><span>AMOUNT DUE</span><span>'+peso(r.amountDue)+'</span></div>':'')+
     (r.pay==='cash'?'<div class="birr"><span>Cash Tendered</span><span>'+peso(r.cash)+'</span></div><div class="birr"><span>Change</span><span>'+peso(r.change)+'</span></div>':'')+
     '<div class="birr"><span>Payment</span><span>'+esc(String(r.pay).toUpperCase())+'</span></div>'+
     (r.senior?('<div class="birdv"></div>'+
@@ -4202,8 +4232,19 @@ function renderCreditBar(){
   var el=$("creditBar"); if(!el) return;
   if(!pendingCredit || !(pendingCredit.amount>0)){ el.style.display="none"; el.innerHTML=""; return; }
   el.style.display="flex";
-  el.innerHTML='<span>\u21a9 Exchange credit <b>\'+peso(pendingCredit.amount)+\'</b> from <b>\'+esc(pendingCredit.rt)+\'</b> (\'+esc(pendingCredit.custName||"Walk-in")+\') will be applied to this sale.</span>' +
-    '<button onclick="cancelCredit()" style="background:none;border:1px solid #4a1a1a;border-radius:3px;color:var(--red);font-size:10px;padding:2px 8px;cursor:pointer;white-space:nowrap">Cancel credit</button>';
+  /* Values are pulled into locals first. Building this inline meant nesting
+     three levels of quoting, which is how the concatenation ended up being
+     printed to the cashier as source text. HTML attributes below use single
+     quotes so nothing needs escaping at all. */
+  var amt = peso(pendingCredit.amount);
+  var ref = esc(pendingCredit.rt);
+  var who = esc(pendingCredit.custName || "Walk-in");
+  var h = "<span>&#8617; Exchange credit <b>" + amt + "</b> from <b>" + ref
+        + "</b> (" + who + ") will be applied to this sale.</span>";
+  h += "<button onclick='cancelCredit()' style='background:none;border:1px solid #4a1a1a;"
+     + "border-radius:3px;color:var(--red);font-size:10px;padding:2px 8px;cursor:pointer;"
+     + "white-space:nowrap'>Cancel credit</button>";
+  el.innerHTML = h;
 }
 function cancelCredit(){
   if(!pendingCredit) return;
