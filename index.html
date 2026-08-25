@@ -14,7 +14,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Arial,sans-serif}
 :root{
-  --bg:#0f1e2d;--bg1:#162636;--bg2:#1a3a5c;--bg3:#0a1826;--bg4:#0d1f2e;--brand:#7cbad5;
+  --bg:#0f1e2d;--bg1:#162636;--bg2:var(--brand,#1a3a5c);--bg3:#0a1826;--bg4:#0d1f2e;--brand:#7cbad5;
   --border:#1e3a52;--border2:#2a6496;
   --text:#e0f0ff;--text2:#aed6f1;--text3:#5d8aa8;--text4:#7ec8f0;
   --green:#2ecc71;--yellow:#f1c40f;--red:#e74c3c;--orange:#e67e22;
@@ -42,7 +42,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg)}
 .nav{display:flex;background:var(--bg4);border-bottom:1px solid var(--bg3);flex-shrink:0;overflow-x:auto}
 .nav::-webkit-scrollbar{height:2px}
 .ntab{padding:7px 14px;font-size:11px;font-weight:500;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:5px;flex-shrink:0;transition:color .15s}
-.ntab.on{color:var(--text4);border-bottom-color:var(--brand,#5dade2);background:var(--bg)}
+.ntab.on{color:var(--text4);border-bottom-color:var(--brand,var(--brandTint,#5dade2));background:var(--bg)}
 .ntab:hover:not(.on){color:var(--text2)}
 .nbadge{background:var(--bg2);color:var(--text4);font-size:9px;padding:1px 5px;border-radius:8px}
 .panel{display:none;flex:1;overflow:hidden;flex-direction:column}
@@ -58,7 +58,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg)}
 .hval.g{color:var(--green)}
 .scrow{display:flex;align-items:center;gap:4px}
 .bc-in{flex:1;min-width:0;height:24px;background:var(--bg3);border:1px solid var(--border2);border-radius:2px;padding:0 7px;color:#fff;font-size:11px;font-family:'Courier New',monospace;outline:none}
-.bc-in:focus{border-color:#5dade2;box-shadow:0 0 0 2px rgba(93,173,226,.15)}
+.bc-in:focus{border-color:var(--brandTint,#5dade2);box-shadow:0 0 0 2px rgba(93,173,226,.15)}
 
 /* BUTTONS */
 .btn{height:24px;padding:0 9px;font-size:10px;font-weight:500;border:none;border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:filter .1s}
@@ -85,12 +85,12 @@ thead th{position:sticky;top:0;background:var(--bg2);padding:5px 6px;text-align:
 thead th.r{text-align:right}
 tbody tr:nth-child(even){background:var(--bg4)}
 tbody tr:nth-child(odd){background:var(--bg1)}
-tbody tr.sel{background:#1a4a70!important;outline:1px solid #5dade2;outline-offset:-1px}
+tbody tr.sel{background:var(--brandSel,#1a4a70)!important;outline:1px solid var(--brandTint,#5dade2);outline-offset:-1px}
 tbody tr:hover{background:#1a3a55!important}
 tbody td{padding:4px 6px;font-size:11px;color:var(--text2);border-bottom:1px solid var(--bg3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
 td.r{text-align:right}
 .qi{width:46px;height:20px;background:var(--bg3);border:1px solid #1e4a6a;border-radius:2px;color:#fff;font-size:11px;text-align:center;outline:none;padding:0 2px}
-.qi:focus{border-color:#5dade2}
+.qi:focus{border-color:var(--brandTint,#5dade2)}
 .xbtn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:1px 4px;display:block;width:100%;text-align:center;line-height:1}
 .xbtn:hover{color:var(--red)}
 .empty-st{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;flex:0 0 auto;color:#1e3a52;font-size:13px;padding:14px 20px 16px;text-align:center;gap:7px}
@@ -110,7 +110,7 @@ td.r{text-align:right}
 .idca:hover{background:var(--accent2)}
 .npgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:4px 8px;flex-shrink:0}
 .npb{height:30px;background:var(--bg2);border:none;border-radius:2px;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:background .1s}
-.npb:hover{background:#1e4a70}
+.npb:hover{background:var(--brandLine,#1e4a70)}
 .npb:active{transform:scale(.96)}
 .npb-c{background:#5e3480;color:#fff}
 .npb-d{background:#7a2e00;color:#fff}
@@ -121,7 +121,7 @@ td.r{text-align:right}
 .tots{padding:5px 8px;border-top:1px solid var(--bg3);flex-shrink:0}
 .trow{display:flex;justify-content:space-between;align-items:center;padding:2px 0;font-size:11px;color:var(--text4)}
 .trow span:last-child{font-family:'Courier New',monospace;font-size:11px}
-.trow.vr{color:#4a6a80;font-size:10px}
+.trow.vr{color:var(--brandLine,#4a6a80);font-size:10px}
 .trow.gr{font-size:14px;font-weight:600;color:var(--green);padding-top:4px;margin-top:3px;border-top:1px solid var(--border)}
 
 /* CASH */
@@ -129,7 +129,7 @@ td.r{text-align:right}
 .crow{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .crow label{font-size:10px;color:var(--text3);width:42px;flex-shrink:0}
 .cin{flex:1;height:22px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:var(--yellow);font-size:12px;font-weight:500;padding:0 6px;outline:none;font-family:'Courier New',monospace}
-.cin:focus{border-color:#5dade2}
+.cin:focus{border-color:var(--brandTint,#5dade2)}
 .qrow{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:3px}
 .qbtn{padding:2px 5px;font-size:10px;border:1px solid var(--border);border-radius:2px;background:var(--bg4);color:var(--text2);cursor:pointer}
 .qbtn:hover{background:var(--accent);color:#fff}
@@ -137,7 +137,7 @@ td.r{text-align:right}
 .pmrow{display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px 8px;border-top:1px solid var(--bg3);flex-shrink:0}
 .pm{height:24px;border:1px solid var(--border);border-radius:2px;background:var(--bg3);color:var(--text4);font-size:10px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;transition:all .1s}
 .pm:hover{background:var(--border)}
-.pm.on{background:var(--accent);color:#fff;border-color:#5dade2}
+.pm.on{background:var(--accent);color:#fff;border-color:var(--brandTint,#5dade2)}
 .cobtn{margin:4px 8px;width:calc(100% - 16px);flex-shrink:0;height:36px;background:#1a6e3a;color:#fff;border:none;border-radius:2px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.02em}
 .cobtn:hover{background:#22a050}
 
@@ -146,7 +146,7 @@ td.r{text-align:right}
 .fn{flex:1;min-width:48px;height:32px;border:none;border-radius:2px;font-size:9px;font-weight:500;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.3;gap:1px;transition:filter .1s}
 .fn:hover{filter:brightness(1.2)}
 .fn .fk{font-size:8px;opacity:.6}
-.fn-b{background:#1a4a70;color:var(--text2)}
+.fn-b{background:var(--brandSel,#1a4a70);color:var(--text2)}
 .fn-g{background:#1a4a2a;color:#7dcea0}
 .fn-r{background:#4a1a1a;color:#f1948a}
 .fn-o{background:#4a2e00;color:#f0b27a}
@@ -164,7 +164,7 @@ td.r{text-align:right}
 .fg label{font-size:10px;color:var(--text3);font-weight:500}
 .fg input,.fg select,.fg textarea{background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:#fff;font-size:11px;padding:0 8px;outline:none;width:100%;height:28px;transition:border-color .15s}
 .fg textarea{height:52px;padding:6px 8px;resize:none}
-.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#5dade2}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--brandTint,#5dade2)}
 .full{grid-column:1/-1}
 .bsr{display:flex;gap:4px}
 .bsr input{flex:1}
@@ -175,23 +175,23 @@ td.r{text-align:right}
 /* TOOLBAR */
 .tbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--bg1);border-bottom:1px solid var(--bg3);flex-shrink:0}
 .tsrch{flex:1;height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:#fff;font-size:11px;padding:0 8px;outline:none}
-.tsrch:focus{border-color:#5dade2}
+.tsrch:focus{border-color:var(--brandTint,#5dade2)}
 .tsel{height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:#fff;font-size:10px;padding:0 5px;outline:none}
-.tcnt{font-size:10px;color:#4a6a80;white-space:nowrap}
+.tcnt{font-size:10px;color:var(--brandLine,#4a6a80);white-space:nowrap}
 
 /* BADGES */
 .badge{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap}
 .bs{background:var(--green-bg);color:var(--green);border:1px solid #1e5c32}
 .bw{background:var(--yellow-bg);color:var(--yellow);border:1px solid #5a4a00}
 .bd{background:var(--red-bg);color:var(--red);border:1px solid #5a2222}
-.bi{background:var(--bg2);color:var(--text4);border:1px solid #2a4a6a}
+.bi{background:var(--bg2);color:var(--text4);border:1px solid var(--brandLine,#2a4a6a)}
 
 /* STAT CARDS */
 .sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 12px;flex-shrink:0}
 .sc{background:var(--bg1);border:1px solid var(--border);border-radius:4px;padding:10px 12px}
 .sl{font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:500}
 .sv{font-size:17px;font-weight:600;color:var(--text);font-family:'Courier New',monospace}
-.ss{font-size:10px;color:#4a6a80;margin-top:2px}
+.ss{font-size:10px;color:var(--brandLine,#4a6a80);margin-top:2px}
 
 /* LOGIN */
 .lscr{position:fixed;inset:0;background:rgba(10,24,38,.97);z-index:200;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:16px 0}
@@ -200,24 +200,24 @@ td.r{text-align:right}
 .lsub{font-size:11px;color:var(--text3);text-align:center;margin-bottom:16px}
 .lusers{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;max-height:40vh;overflow-y:auto}
 .ubtn{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:border-color .15s}
-.ubtn:hover{border-color:#5dade2}
-.ubtn.sel{border-color:#5dade2;background:var(--bg4)}
+.ubtn:hover{border-color:var(--brandTint,#5dade2)}
+.ubtn.sel{border-color:var(--brandTint,#5dade2);background:var(--bg4)}
 .uav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
 .uname{font-size:12px;font-weight:500;color:var(--text)}
 .urole{font-size:10px;color:var(--text3)}
 .pdots{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
-.pdot{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px;color:#5dade2;transition:background .15s}
-.pdot.filled{background:var(--bg2);border-color:#5dade2}
+.pdot{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--brandTint,#5dade2);transition:background .15s}
+.pdot.filled{background:var(--bg2);border-color:var(--brandTint,#5dade2)}
 .pnp{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:12px}
 .pbtn{height:38px;background:var(--bg2);border:none;border-radius:4px;color:var(--text2);font-size:16px;font-weight:500;cursor:pointer;transition:background .1s}
-.pbtn:hover{background:#1e4a70}
+.pbtn:hover{background:var(--brandLine,#1e4a70)}
 .pbtn:active{transform:scale(.95)}
 .pbtn.clr{background:#5e3480;color:#fff}
 .pbtn.del{background:#7a2e00;color:#fff}
 .pok{width:100%;height:38px;background:#1a6e3a;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:6px;transition:background .1s}
 .pok:hover{background:#22a050}
 .perr{font-size:11px;color:var(--red);text-align:center;min-height:16px}
-.lhint{font-size:10px;color:#2a4a6a;text-align:center;margin-top:8px}
+.lhint{font-size:10px;color:var(--brandLine,#2a4a6a);text-align:center;margin-top:8px}
 
 /* MODAL */
 .moverlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;display:none;align-items:center;justify-content:center}
@@ -228,7 +228,7 @@ td.r{text-align:right}
 .minp{width:100%;height:36px;background:var(--bg3);border:1px solid var(--border2);border-radius:2px;color:var(--green);font-size:16px;font-weight:500;text-align:right;padding:0 10px;outline:none;font-family:'Courier New',monospace;margin-bottom:8px}
 .mnpg{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:8px}
 .mnb{height:32px;background:var(--bg2);border:none;border-radius:2px;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:background .1s}
-.mnb:hover{background:#1e4a70}
+.mnb:hover{background:var(--brandLine,#1e4a70)}
 .mnb.clr{background:#5e3480;color:#fff}
 .mnb.del{background:#7a2e00;color:#fff}
 .mok{width:100%;height:30px;background:var(--accent);color:#fff;border:none;border-radius:2px;font-size:11px;font-weight:500;cursor:pointer;transition:background .1s}
@@ -257,7 +257,7 @@ td.r{text-align:right}
 .sfield{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
 .sfield label{font-size:10px;color:var(--text3);font-weight:500}
 .sfield input{background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:#fff;font-size:12px;padding:5px 8px;outline:none;width:100%;height:32px}
-.sfield input:focus{border-color:#5dade2}
+.sfield input:focus{border-color:var(--brandTint,#5dade2)}
 .sdivider{border:none;border-top:1px solid var(--border);margin:14px 0}
 .danger-zone{background:#1a0a0a;border:1px solid #5a1a1a;border-radius:4px;padding:12px;margin-top:8px}
 .danger-zone h4{font-size:11px;color:var(--red);margin-bottom:8px;font-weight:600}
@@ -267,14 +267,14 @@ td.r{text-align:right}
 .pick.hide{display:none}
 .pick-bar{display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px solid var(--bg3);flex-shrink:0}
 .pick-in{flex:1;height:26px;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:#fff;font-size:12px;padding:0 8px;outline:none}
-.pick-in:focus{border-color:#5dade2}
+.pick-in:focus{border-color:var(--brandTint,#5dade2)}
 .chips{display:flex;gap:4px;padding:5px 8px 0;flex-wrap:wrap;flex-shrink:0}
 .chip{font-size:10px;padding:2px 9px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);cursor:pointer;white-space:nowrap}
-.chip.on{background:var(--accent);color:#fff;border-color:#5dade2}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--brandTint,#5dade2)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:5px;padding:6px 8px;overflow-y:auto;flex:1}
 .tiles::-webkit-scrollbar{width:5px}.tiles::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 .tile{background:var(--bg1);border:1px solid var(--border);border-radius:4px;padding:6px 7px;cursor:pointer;display:flex;flex-direction:column;gap:2px;text-align:left;transition:border-color .12s,background .12s;min-height:52px}
-.tile:hover{border-color:#5dade2;background:#12304a}
+.tile:hover{border-color:var(--brandTint,#5dade2);background:#12304a}
 .tile:active{transform:scale(.97)}
 .tile.oos{opacity:.42;cursor:not-allowed}
 .tile-nm{font-size:11px;color:#e8f4ff;font-weight:500;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -282,7 +282,7 @@ td.r{text-align:right}
 .tile-st{font-size:9px;color:var(--text3)}
 .tile-st.low{color:var(--yellow)}.tile-st.out{color:var(--red)}
 .tile-vx{font-size:8px;color:var(--orange);border:1px solid #5a3a1a;border-radius:6px;padding:0 4px;align-self:flex-start}
-.pick-empty{padding:18px;text-align:center;color:#2a4a6a;font-size:11px}
+.pick-empty{padding:18px;text-align:center;color:var(--brandLine,#2a4a6a);font-size:11px}
 .pick-tgl{font-size:10px;background:var(--bg2);color:var(--text4);border:1px solid var(--border);border-radius:3px;padding:3px 9px;cursor:pointer;white-space:nowrap}
 
 /* ══ SHIFT BAR ══ */
@@ -298,7 +298,7 @@ td.r{text-align:right}
 
 /* ══ MODAL EXTRAS ══ */
 .mrow-in{width:100%;height:28px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;color:#fff;font-size:11px;padding:0 8px;outline:none}
-.mrow-in:focus{border-color:#5dade2}
+.mrow-in:focus{border-color:var(--brandTint,#5dade2)}
 .mlbl{font-size:10px;color:var(--text3);display:block;margin-bottom:3px}
 .mtbl{width:100%;border-collapse:collapse;font-size:10px}
 .mtbl th{text-align:left;color:var(--text3);font-weight:600;padding:4px 5px;border-bottom:1px solid var(--border);font-size:9px;text-transform:uppercase}
@@ -776,7 +776,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1787636142653",sk="my_tindahan_build_stamp";
+  var stamp="1787643188086",sk="my_tindahan_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("my_tindahan_users");
     localStorage.removeItem("my_tindahan_store");
@@ -797,7 +797,7 @@ const LS = {
 };
 
 let USERS = (()=>{
-  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$wkve1b1bxtmdl13hs1nc","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$1ujyqminag8z1mbxc94","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$bbw3tcj27o8scb4ve","color":"#1a6e3a","mustChange":true}]);
+  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$17ka6rz2rep8317ggboo","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$1wbyv851gnk9u51j2aw76","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$1bj3p5eixiorl6fywal","color":"#1a6e3a","mustChange":true}]);
   return u;
 })();
 
@@ -1023,7 +1023,7 @@ function cardLabel(c){
    stops PINs sitting in localStorage as readable plain text.
    ════════════════════════════════════════ */
 const PIN_SALT='mystore.pos.v2';
-const PIN_SALT2='f728d2aa96e4e7d12c42a1e298ad514b';
+const PIN_SALT2='3c9a9f80121f1f133c10441ce84a7fe8';
 function hashPin(pin){
   let h1=0x811c9dc5, h2=0x1000193;
   const str=PIN_SALT+':'+pin+':'+PIN_SALT;
@@ -2569,7 +2569,7 @@ function deleteItem(idx){
    STOCK-IN
 ════════════════════════════════════════ */
 function receiveStock(){
-  const bc=$('sbc').value.trim(), qty=parseInt($('sqty').value)||0;
+  const bc=$('sbc').value.trim(), qty=parseFloat($('sqty').value)||0;
   if(!bc||!qty){ toast('Barcode and qty required','1500','#e74c3c'); return; }
   const p=prods.find(x=>x.bc===bc||x.code===bc);
   if(!p){ toast('Product not found \u2014 register it first','1800','#e74c3c'); return; }
@@ -6715,31 +6715,65 @@ function openCreditCount(){
   };
   function limitOf(c){ return Math.max(0, parseFloat(c && c.limit)||0); }
 
-  /* Oldest unpaid money, for the ageing report. Payments settle the
-     oldest charge first, which is how a shopkeeper actually thinks. */
+  /* ══════════════════════════════════════════
+     ALLOCATION — the part that was missing
+     A running balance tells you WHAT is owed and nothing about WHICH.
+     Payments settle the oldest charge first, which is how a shopkeeper
+     actually thinks, so every charge can be marked settled, part-paid
+     or open, with the date and the name of whoever took the money.
+     Derived on read: there is no second copy to drift.
+  ══════════════════════════════════════════ */
+  function byDate(a,b){ return new Date(a.at)-new Date(b.at); }
+
+  window.allocate=function(c, untilPaymentId){
+    var L=acct(c).slice().sort(byDate);
+    var charges=L.filter(function(m){ return m.type==='charge'; })
+                 .map(function(m){ return {m:m, paid:0, remaining:m.amount,
+                        settledAt:null, settledBy:null, settledRef:null}; });
+    var payments=[], stop=false;
+    L.forEach(function(m){
+      if(m.type!=='payment' || stop) return;
+      var left=m.amount, applied=[];
+      for(var i=0;i<charges.length && left>0.004;i++){
+        var ch=charges[i];
+        if(ch.remaining<=0.004) continue;
+        var take=r2(Math.min(left, ch.remaining));
+        ch.paid=r2(ch.paid+take);
+        ch.remaining=r2(ch.remaining-take);
+        left=r2(left-take);
+        applied.push({ref:ch.m.ref||'\u2014', amount:take, at:ch.m.at});
+        if(ch.remaining<=0.004){ ch.settledAt=m.at; ch.settledBy=m.by; ch.settledRef=m.ref; }
+      }
+      payments.push({m:m, applied:applied, unapplied:r2(left)});
+      if(untilPaymentId && m.id===untilPaymentId) stop=true;
+    });
+    var open=charges.filter(function(x){ return x.remaining>0.004; });
+    return {
+      charges:charges, payments:payments, open:open,
+      settled:charges.filter(function(x){ return x.remaining<=0.004; }),
+      totalCharged:r2(charges.reduce(function(s,x){ return s+x.m.amount; },0)),
+      totalPaid:r2(payments.reduce(function(s,x){ return s+x.m.amount; },0)),
+      outstanding:r2(open.reduce(function(s,x){ return s+x.remaining; },0))
+    };
+  };
+
   function ageing(c){
-    var charges=acct(c).filter(function(m){ return m.type==='charge'; })
-                       .sort(function(a,b){ return new Date(a.at)-new Date(b.at); });
-    var paid=r2(acct(c).filter(function(m){ return m.type==='payment'; })
-                       .reduce(function(s,m){ return s+m.amount; },0));
+    var a=allocate(c);
     var out={d7:0,d30:0,over:0,oldest:null};
-    charges.forEach(function(ch){
-      var owed=ch.amount;
-      if(paid>0){ var take=Math.min(paid,owed); owed=r2(owed-take); paid=r2(paid-take); }
-      if(owed<=0) return;
-      if(!out.oldest) out.oldest=ch.at;
-      var days=Math.floor((Date.now()-new Date(ch.at).getTime())/86400000);
-      if(days<=7) out.d7=r2(out.d7+owed);
-      else if(days<=30) out.d30=r2(out.d30+owed);
-      else out.over=r2(out.over+owed);
+    a.open.forEach(function(x){
+      if(!out.oldest) out.oldest=x.m.at;
+      var days=Math.floor((Date.now()-new Date(x.m.at).getTime())/86400000);
+      if(days<=7) out.d7=r2(out.d7+x.remaining);
+      else if(days<=30) out.d30=r2(out.d30+x.remaining);
+      else out.over=r2(out.over+x.remaining);
     });
     return out;
   }
   window.acctAgeing=ageing;
 
-  function post(c, type, amount, ref, note){
+  function post(c, type, amount, ref, note, by){
     var m={id:uid(), at:new Date().toISOString(), type:type, amount:r2(amount),
-           ref:ref||'', by:currentUser?currentUser.name:'\u2014', note:note||''};
+           ref:ref||'', by:by||(currentUser?currentUser.name:'\u2014'), note:note||''};
     acct(c).push(m);
     if(typeof queueAcct==='function') queueAcct(c, m);
     saveAll();
@@ -6844,7 +6878,10 @@ function openCreditCount(){
     if(counters.inv>before && lastRcpt && lastRcpt.custId){
       var cu=customers.find(function(x){ return String(x.id)===String(lastRcpt.custId); });
       if(cu){
-        post(cu,'charge',lastRcpt.total,lastRcpt.inv,'sale on account');
+        /* The cashier on the receipt owns the charge, not whoever happens
+           to be logged in when this runs. */
+        post(cu,'charge',lastRcpt.total,lastRcpt.inv,'sale on account',
+             lastRcpt.cashier||(currentUser?currentUser.name:'\u2014'));
         lastRcpt.onAccount=true;
         lastRcpt.balanceAfter=balanceOf(cu);
         saveAll();
@@ -6894,8 +6931,17 @@ function openCreditCount(){
         '<div class="mi-row">8\u201330 days: <span>'+peso(ag.d30)+'</span></div>'+
         '<div class="mi-row">Over 30 days: <span style="color:'+(ag.over>0?'var(--red)':'var(--text2)')+'">'+peso(ag.over)+'</span></div>'+
       '</div>'+
+      '<div style="font-size:10px;color:var(--text4);font-weight:600;margin:6px 0 3px">Open utang, oldest first</div>'+
+      '<div style="max-height:120px;overflow-y:auto;margin-bottom:8px">'+
+      allocate(c).open.map(function(x){
+        return '<div class="mi-row" style="font-size:10px">'+
+          new Date(x.m.at).toLocaleDateString('en-PH',{month:'short',day:'numeric'})+' '+esc(x.m.ref||'')+
+          ' <span style="color:var(--text3)">'+esc(x.m.by||'')+'</span>'+
+          '<span>'+peso(x.remaining)+'</span></div>';
+      }).join('')+'</div>'+
       '<label class="mlbl">Amount received</label>'+
-      '<input class="minp" id="pyAmt" type="number" min="0" step="0.01" value="'+bal.toFixed(2)+'" />'+
+      '<input class="minp" id="pyAmt" type="number" min="0" step="0.01" value="'+bal.toFixed(2)+'" oninput="payPreview('+idx+')" />'+
+      '<div id="pyPrev" style="font-size:10px;color:var(--text3);min-height:26px;padding:3px 2px;line-height:1.5"></div>'+
       '<label class="mlbl">Paid in</label>'+
       '<select id="pyHow" class="mrow-in" style="margin-bottom:8px">'+
         '<option value="cash">Cash \u2014 goes into the drawer</option>'+
@@ -6906,6 +6952,25 @@ function openCreditCount(){
       '<div class="mnote">This is not a sale and does not appear in sales or VAT. Cash payments are recorded '+
       'as money arriving in the drawer, so your shift still balances.</div>'+
       '<button class="mok" onclick="doCollect('+idx+')">&#10003; Record payment</button></div>');
+    payPreview(idx);
+  };
+
+  /* Say which sales the money will close before it is taken. */
+  window.payPreview=function(idx){
+    var c=customers[idx], box=$('pyPrev'); if(!c||!box) return;
+    var amt=parseFloat(($('pyAmt')||{}).value)||0;
+    var A=allocate(c), left=amt, closed=[], part=null;
+    for(var i=0;i<A.open.length && left>0.004;i++){
+      var x=A.open[i];
+      if(left>=x.remaining-0.004){ closed.push(x.m.ref||'\u2014'); left=r2(left-x.remaining); }
+      else { part={ref:x.m.ref||'\u2014', pay:left, left:r2(x.remaining-left)}; left=0; }
+    }
+    if(amt<=0){ box.innerHTML=''; return; }
+    box.innerHTML=
+      (closed.length?'\u2713 settles <b>'+esc(closed.join(', '))+'</b>':'') +
+      (part?(closed.length?'<br>':'')+'\u00b7 part-pays <b>'+esc(part.ref)+'</b>, '+peso(part.left)+' still open':'') +
+      (left>0.004?'<br><span style="color:var(--orange)">'+peso(left)+' more than is owed</span>':'') +
+      '<br>Balance after: <b>'+peso(Math.max(0,r2(balanceOf(c)-amt)))+'</b>';
   };
 
   window.doCollect=function(idx){
@@ -6916,6 +6981,8 @@ function openCreditCount(){
     if(amt<=0){ toast('Enter an amount','1800','#e74c3c'); return; }
     if(amt>bal+0.004){ toast('That is more than the '+peso(bal)+' owed','2600','#e74c3c'); return; }
     var m=post(c,'payment',amt,'PAY-'+new Date().toISOString().slice(0,10),how);
+    /* Derived after posting, so the slip shows what this payment actually closed. */
+    var alloc=allocate(c,m.id).payments.filter(function(p){ return p.m.id===m.id; })[0];
     /* Cash in hand belongs to the drawer, not to sales. */
     if(how==='cash' && typeof shiftOpen==='function' && shiftOpen()){
       shift.moves=shift.moves||[];
@@ -6924,11 +6991,11 @@ function openCreditCount(){
     }
     saveAll(); closeModal();
     try{ renderCustomers(); renderShiftBar(); }catch(e){}
-    printHtml(payslipHtml(c,m,balanceOf(c)));
+    printHtml(payslipHtml(c,m,balanceOf(c),alloc));
     toast('\u2713 '+peso(amt)+' received \u2014 '+c.name+' now owes '+peso(balanceOf(c)),4500);
   };
 
-  function payslipHtml(c,m,after){
+  function payslipHtml(c,m,after,alloc){
     var line=function(l,v){ return '<div class="birr"><span>'+l+'</span><span>'+v+'</span></div>'; };
     return '<div class="bir">'+
       '<div class="birt">'+esc(STORE.name)+'</div>'+
@@ -6943,6 +7010,12 @@ function openCreditCount(){
       line('Paid in', esc(String(m.note||'cash').toUpperCase()))+
       '<div class="birdv"></div>'+
       '<div class="birtot"><span>AMOUNT RECEIVED</span><span>'+peso(m.amount)+'</span></div>'+
+      (alloc && alloc.applied.length
+        ? '<div style="font-size:10px;color:#888;margin:4px 0 2px">Settles</div>'+
+          alloc.applied.map(function(a){
+            return '<div class="birr" style="font-size:10px"><span>'+esc(a.ref)+'</span><span>'+peso(a.amount)+'</span></div>';
+          }).join('')
+        : '')+
       line('Balance still owed', peso(after))+
       '<div class="birdv"></div>'+
       '<div style="font-size:9px;margin-top:6px">Received by: ______________________</div>'+
@@ -6955,39 +7028,84 @@ function openCreditCount(){
   ══════════════════════════════════════════ */
   window.showStatement=function(idx){
     var c=customers[idx]; if(!c) return;
-    var rows=acct(c).slice().sort(function(a,b){ return new Date(a.at)-new Date(b.at); });
-    if(!rows.length){ toast(c.name+' has no account activity',2200); return; }
-    var run=0;
-    var body=rows.map(function(m){
-      run = r2(run + (m.type==='charge'? m.amount : -m.amount));
-      return '<tr><td style="white-space:nowrap">'+new Date(m.at).toLocaleDateString('en-PH',
+    var A=allocate(c);
+    if(!A.charges.length && !A.payments.length){ toast(esc(c.name)+' has no account activity',2200); return; }
+
+    /* Every charge, with what became of it. */
+    var chargeRows=A.charges.slice().reverse().map(function(x){
+      var settled=x.remaining<=0.004;
+      var part=!settled && x.paid>0.004;
+      var status = settled
+        ? '<span style="color:var(--green)">SETTLED</span><div style="font-size:9px;color:var(--text3)">'+
+            new Date(x.settledAt).toLocaleDateString('en-PH',{month:'short',day:'numeric'})+
+            ' \u00b7 '+esc(x.settledBy||'')+'</div>'
+        : (part
+            ? '<span style="color:var(--orange)">PART PAID</span><div style="font-size:9px;color:var(--text3)">'+
+              peso(x.remaining)+' left</div>'
+            : '<span style="color:var(--yellow)">OPEN</span><div style="font-size:9px;color:var(--text3)">'+
+              Math.floor((Date.now()-new Date(x.m.at).getTime())/86400000)+'d</div>');
+      return '<tr><td style="white-space:nowrap">'+new Date(x.m.at).toLocaleDateString('en-PH',
                {month:'short',day:'numeric'})+'</td>'+
-        '<td>'+esc(m.ref||'')+'<div style="font-size:9px;color:var(--text3)">'+esc(m.note||'')+'</div></td>'+
-        '<td class="r" style="color:var(--orange)">'+(m.type==='charge'?peso(m.amount):'')+'</td>'+
-        '<td class="r" style="color:var(--green)">'+(m.type==='payment'?peso(m.amount):'')+'</td>'+
-        '<td class="r"><b>'+peso(run)+'</b></td></tr>';
+        '<td>'+esc(x.m.ref||'\u2014')+'</td>'+
+        '<td>'+esc(x.m.by||'\u2014')+'</td>'+
+        '<td class="r">'+peso(x.m.amount)+'</td>'+
+        '<td class="r">'+(x.paid>0.004?peso(x.paid):'\u2014')+'</td>'+
+        '<td>'+status+'</td></tr>';
     }).join('');
-    openModal('<div class="mbox" style="width:380px">'+mHead('&#128209; Statement \u2014 '+esc(c.name))+
-      '<div style="max-height:300px;overflow-y:auto"><table class="mtbl"><thead><tr>'+
-      '<th>Date</th><th>Ref</th><th class="r">Utang</th><th class="r">Bayad</th><th class="r">Balance</th>'+
-      '</tr></thead><tbody>'+body+'</tbody></table></div>'+
-      '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;'+
-        'border-top:1px solid var(--border);margin-top:8px;padding-top:8px">'+
-        '<span>Balance owed</span><span style="color:var(--yellow)">'+peso(balanceOf(c))+'</span></div>'+
+
+    /* Every payment, and which charges it closed. */
+    var payRows=A.payments.slice().reverse().map(function(p){
+      return '<tr><td style="white-space:nowrap">'+new Date(p.m.at).toLocaleDateString('en-PH',
+               {month:'short',day:'numeric'})+'</td>'+
+        '<td>'+esc(String(p.m.note||'cash').toUpperCase())+'</td>'+
+        '<td>'+esc(p.m.by||'\u2014')+'</td>'+
+        '<td class="r" style="color:var(--green)">'+peso(p.m.amount)+'</td>'+
+        '<td colspan="2" style="font-size:9px;color:var(--text3)">'+
+          (p.applied.length
+            ? 'applied to '+p.applied.map(function(a){ return esc(a.ref)+' '+peso(a.amount); }).join(', ')
+            : 'nothing outstanding at the time')+
+          (p.unapplied>0.004?' \u00b7 <span style="color:var(--orange)">'+peso(p.unapplied)+' unapplied</span>':'')+
+        '</td></tr>';
+    }).join('');
+
+    openModal('<div class="mbox" style="width:420px">'+mHead('&#128209; Account \u2014 '+esc(c.name))+
+      '<div class="minfobox">'+
+        '<div class="mi-row">Total charged: <span>'+peso(A.totalCharged)+' over '+A.charges.length+' sale(s)</span></div>'+
+        '<div class="mi-row">Total paid: <span style="color:var(--green)">'+peso(A.totalPaid)+'</span></div>'+
+        '<div class="mi-row">Settled: <span>'+A.settled.length+' of '+A.charges.length+' sale(s)</span></div>'+
+        '<div class="mi-row">Still owed: <span style="color:'+(A.outstanding>0?'var(--yellow)':'var(--green)')+
+          '">'+peso(A.outstanding)+(A.open.length?' across '+A.open.length+' sale(s)':' \u2014 fully settled')+'</span></div>'+
+      '</div>'+
+      '<div style="font-size:10px;color:var(--text4);font-weight:600;margin:8px 0 4px">UTANG (charges)</div>'+
+      '<div style="max-height:190px;overflow-y:auto"><table class="mtbl"><thead><tr>'+
+        '<th>Date</th><th>OR no.</th><th>Cashier</th><th class="r">Amount</th><th class="r">Paid</th><th>Status</th>'+
+      '</tr></thead><tbody>'+chargeRows+'</tbody></table></div>'+
+      '<div style="font-size:10px;color:var(--text4);font-weight:600;margin:10px 0 4px">BAYAD (payments)</div>'+
+      '<div style="max-height:150px;overflow-y:auto"><table class="mtbl"><thead><tr>'+
+        '<th>Date</th><th>How</th><th>Received by</th><th class="r">Amount</th><th colspan="2">Settled</th>'+
+      '</tr></thead><tbody>'+(payRows||'<tr><td colspan="6" style="color:var(--text3)">No payments yet</td></tr>')+
+      '</tbody></table></div>'+
       '<div class="m2btn" style="margin-top:9px">'+
         '<button onclick="printStatement('+idx+')" style="background:#1a5c8a;color:#fff;border:none">&#128438; Print</button>'+
-        '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Close</button>'+
+        (A.outstanding>0
+          ? '<button onclick="closeModal();collectModal('+idx+')" style="background:#1a6e3a;color:#fff;border:none">&#128176; Bayad</button>'
+          : '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Close</button>')+
       '</div></div>');
   };
+
   window.printStatement=function(idx){
     var c=customers[idx]; if(!c) return;
-    var rows=acct(c).slice().sort(function(a,b){ return new Date(a.at)-new Date(b.at); });
-    var run=0, ag=ageing(c);
-    var body=rows.map(function(m){
-      run=r2(run+(m.type==='charge'?m.amount:-m.amount));
-      return '<div class="birr" style="font-size:10px"><span>'+
-        new Date(m.at).toLocaleDateString('en-PH',{month:'short',day:'numeric'})+' '+esc(m.ref||'')+'</span>'+
-        '<span>'+(m.type==='charge'?'':'-')+peso(m.amount)+' \u00b7 '+peso(run)+'</span></div>';
+    var A=allocate(c), ag=ageing(c);
+    var row=function(l,r){ return '<div class="birr" style="font-size:10px"><span>'+l+'</span><span>'+r+'</span></div>'; };
+    var open=A.open.map(function(x){
+      return row(new Date(x.m.at).toLocaleDateString('en-PH',{month:'short',day:'numeric'})+' '+
+                 esc(x.m.ref||'')+' <i>'+esc(x.m.by||'')+'</i>',
+                 peso(x.remaining)+(x.paid>0.004?' (of '+peso(x.m.amount)+')':''));
+    }).join('') || '<div class="birc" style="font-size:10px;color:#666">Nothing outstanding</div>';
+    var done=A.settled.slice(-8).map(function(x){
+      return row(new Date(x.m.at).toLocaleDateString('en-PH',{month:'short',day:'numeric'})+' '+esc(x.m.ref||''),
+                 'PAID '+new Date(x.settledAt).toLocaleDateString('en-PH',{month:'short',day:'numeric'})+
+                 ' \u00b7 '+esc(x.settledBy||''));
     }).join('');
     printHtml('<div class="bir">'+
       '<div class="birt">'+esc(STORE.name)+'</div>'+
@@ -6995,14 +7113,20 @@ function openCreditCount(){
       '<div class="birdv"></div>'+
       '<div class="birc" style="font-weight:700;font-size:11px">STATEMENT OF ACCOUNT</div>'+
       '<div class="birc" style="font-size:10px">'+esc(c.name)+(c.phone?' \u00b7 '+esc(c.phone):'')+'</div>'+
-      '<div class="birc" style="font-size:9px;color:#666">'+new Date().toLocaleString('en-PH')+'</div>'+
-      '<div class="birdv"></div>'+body+'<div class="birdv"></div>'+
-      '<div class="birtot"><span>BALANCE OWED</span><span>'+peso(balanceOf(c))+'</span></div>'+
-      '<div class="birr"><span>0\u20137 days</span><span>'+peso(ag.d7)+'</span></div>'+
-      '<div class="birr"><span>8\u201330 days</span><span>'+peso(ag.d30)+'</span></div>'+
-      '<div class="birr"><span>over 30 days</span><span>'+peso(ag.over)+'</span></div>'+
+      '<div class="birc" style="font-size:9px;color:#666">as at '+new Date().toLocaleString('en-PH')+'</div>'+
+      '<div class="birdv"></div>'+
+      row('Total charged', peso(A.totalCharged))+
+      row('Total paid', '-'+peso(A.totalPaid))+
+      row('Sales settled', A.settled.length+' of '+A.charges.length)+
+      '<div class="birtot"><span>BALANCE OWED</span><span>'+peso(A.outstanding)+'</span></div>'+
+      '<div class="birdv"></div>'+
+      '<div style="font-size:10px;color:#888;margin-bottom:3px">STILL OPEN (oldest first)</div>'+open+
+      '<div class="birdv"></div>'+
+      row('0\u20137 days', peso(ag.d7))+row('8\u201330 days', peso(ag.d30))+row('over 30 days', peso(ag.over))+
+      (done?'<div class="birdv"></div><div style="font-size:10px;color:#888;margin-bottom:3px">RECENTLY SETTLED</div>'+done:'')+
       '<div class="birdv"></div>'+
       '<div style="font-size:9px;margin-top:6px">Conforme: ______________________</div>'+
+      '<div style="font-size:9px;margin-top:4px">Date: __________________________</div>'+
     '</div>');
   };
 
@@ -7010,11 +7134,17 @@ function openCreditCount(){
      THE LEDGER — who owes what, and how old it is
   ══════════════════════════════════════════ */
   window.showUtangBook=function(){
-    var list=customers.map(function(c,i){ return {c:c,i:i,bal:balanceOf(c),ag:ageing(c)}; })
+    var list=customers.map(function(c,i){ return {c:c,i:i,bal:balanceOf(c),ag:ageing(c),A:allocate(c)}; })
                       .filter(function(x){ return x.bal>0.004; })
                       .sort(function(a,b){ return b.ag.over-a.ag.over || b.bal-a.bal; });
     var tot=totalReceivable();
-    if(!list.length){ toast('Nobody owes anything \u2014 the book is clear',2800,'#2ecc71'); return; }
+    var cleared=customers.map(function(c,i){ return {c:c,i:i,A:allocate(c)}; })
+      .filter(function(x){ return x.A.charges.length && x.A.outstanding<=0.004; });
+    /* An empty outstanding list is not an empty book. The settled history is
+       the part that proves people pay, so it must still be reachable. */
+    if(!list.length && !cleared.length){
+      toast('No utang has been recorded yet',2800); return;
+    }
     var t7=r2(list.reduce(function(s,x){ return s+x.ag.d7; },0));
     var t30=r2(list.reduce(function(s,x){ return s+x.ag.d30; },0));
     var tov=r2(list.reduce(function(s,x){ return s+x.ag.over; },0));
@@ -7025,14 +7155,24 @@ function openCreditCount(){
         '<div class="mi-row">8\u201330 days: <span>'+peso(t30)+'</span></div>'+
         '<div class="mi-row">Over 30 days: <span style="color:'+(tov>0?'var(--red)':'var(--text2)')+'">'+peso(tov)+'</span></div>'+
       '</div>'+
-      '<div style="max-height:280px;overflow-y:auto"><table class="mtbl"><thead><tr>'+
-      '<th>Customer</th><th class="r">Owes</th><th class="r">Over 30d</th><th></th></tr></thead><tbody>'+
+      (list.length
+        ? '<div style="max-height:280px;overflow-y:auto"><table class="mtbl"><thead><tr>'+
+          '<th>Customer</th><th class="r">Owes</th><th class="r">Open</th><th class="r">Over 30d</th>'+
+          '<th>Last bayad</th><th></th></tr></thead><tbody>'
+        : '<div style="font-size:11px;color:var(--green);padding:8px 2px">'+
+          '\u2713 Nobody owes anything right now.</div><div style="display:none"><table><tbody>')+
       list.map(function(x){
         return '<tr><td>'+esc(x.c.name)+'<div style="font-size:9px;color:var(--text3)">'+
             esc(x.c.phone||'')+(limitOf(x.c)?' \u00b7 limit '+peso(limitOf(x.c)):' \u00b7 no limit')+'</div></td>'+
           '<td class="r" style="color:var(--yellow)"><b>'+peso(x.bal)+'</b></td>'+
+          '<td class="r">'+x.A.open.length+' of '+x.A.charges.length+'</td>'+
           '<td class="r" style="color:'+(x.ag.over>0?'var(--red)':'var(--text3)')+'">'+
             (x.ag.over>0?peso(x.ag.over):'\u2014')+'</td>'+
+          '<td style="font-size:9px;color:var(--text3);white-space:nowrap">'+
+            (x.A.payments.length
+              ? new Date(x.A.payments[x.A.payments.length-1].m.at).toLocaleDateString('en-PH',{month:'short',day:'numeric'})+
+                '<br>'+esc(x.A.payments[x.A.payments.length-1].m.by||'')
+              : 'never')+'</td>'+
           '<td style="white-space:nowrap">'+
             '<button onclick="collectModal('+x.i+')" style="background:#1a6e3a;color:#fff;border:none;'+
               'border-radius:2px;font-size:9px;padding:3px 6px;cursor:pointer;margin-right:2px">Bayad</button>'+
@@ -7040,21 +7180,42 @@ function openCreditCount(){
               'border-radius:2px;color:var(--text4);font-size:9px;padding:3px 6px;cursor:pointer">Statement</button>'+
           '</td></tr>';
       }).join('')+'</tbody></table></div>'+
+      (function(){
+        return cleared.length
+          ? '<div style="font-size:10px;color:var(--text3);margin-top:8px;line-height:1.6">'+
+            '&#10003; <b>'+cleared.length+'</b> account(s) fully settled \u2014 tap for the statement: '+
+            cleared.slice(0,8).map(function(x){
+              return '<a href="#" onclick="closeModal();showStatement('+x.i+');return false" '+
+                'style="color:var(--green);text-decoration:none">'+esc(x.c.name)+'</a>';
+            }).join(', ')+'</div>'
+          : '';
+      })()+
       '<div class="m2btn" style="margin-top:9px">'+
         '<button onclick="exportUtangCsv()" style="background:#1a5c8a;color:#fff;border:none">&#8659; CSV</button>'+
         '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Close</button>'+
       '</div></div>');
   };
   window.exportUtangCsv=function(){
-    var rows=[['customer','phone','limit','balance','0_7_days','8_30_days','over_30_days','oldest_unpaid'].join(',')];
+    /* Line by line, so it can be reconciled rather than just read. */
+    var rows=[['customer','phone','limit','or_no','date','cashier','amount','paid',
+               'still_owed','status','settled_on','settled_by','age_days'].join(',')];
     customers.forEach(function(c){
-      var b=balanceOf(c); if(b<=0.004) return;
-      var a=ageing(c);
-      rows.push([c.name,c.phone||'',limitOf(c),b,a.d7,a.d30,a.over,
-        a.oldest?new Date(a.oldest).toISOString().slice(0,10):''].map(csvCell).join(','));
+      var A=allocate(c);
+      if(!A.charges.length) return;
+      A.charges.forEach(function(x){
+        var settled=x.remaining<=0.004;
+        rows.push([c.name, c.phone||'', limitOf(c), x.m.ref||'',
+          new Date(x.m.at).toISOString().slice(0,10), x.m.by||'',
+          r2(x.m.amount), r2(x.paid), r2(x.remaining),
+          settled?'SETTLED':(x.paid>0.004?'PART PAID':'OPEN'),
+          settled?new Date(x.settledAt).toISOString().slice(0,10):'',
+          settled?(x.settledBy||''):'',
+          settled?'':Math.floor((Date.now()-new Date(x.m.at).getTime())/86400000)
+        ].map(csvCell).join(','));
+      });
     });
-    dlFile('utang_'+new Date().toISOString().slice(0,10)+'.csv', rows.join('\n'));
-    toast('Utang book exported');
+    dlFile('utang_detail_'+new Date().toISOString().slice(0,10)+'.csv', rows.join('\n'));
+    toast('Utang exported \u2014 one row per sale, with settlement');
   };
 
   /* ══════════════════════════════════════════
@@ -7284,6 +7445,8 @@ function openCreditCount(){
     set('--brandDeep',p.deep);    set('--onBrand',p.onBrand);
     set('--brandTint',p.tint);    set('--brandSoft',p.soft);
     set('--brandEdge',p.edge);
+    set('--brandSel',p.soft);      /* selected table row fill */
+    set('--brandLine',p.edge);     /* structural borders      */
     /* The two tokens the app already used for primary actions. */
     set('--accent',p.accent);     set('--accent2',p.accent2);
     set('--border2',p.edge);
@@ -7305,14 +7468,12 @@ function openCreditCount(){
       '.ntab:hover{color:var(--brandTint)!important}'+
       '.nbadge{background:var(--brandSoft)!important;color:var(--brandTint)!important;'+
         'border:1px solid var(--brandEdge)!important}'+
-      /* Primary actions */
-      '.cobtn{background:linear-gradient(180deg,var(--accent2),var(--accent))!important;'+
-        'border-color:var(--brandDeep)!important}'+
+      /* Primary actions. Checkout deliberately stays GREEN — it is a
+         confirm-money action and its colour is a signal, not decoration. */
       '.abtn{background:var(--accent)!important;border-color:var(--brandDeep)!important}'+
       '.abtn:hover{background:var(--accent2)!important}'+
       '.pm.on{background:var(--accent)!important;border-color:var(--brand)!important;color:#fff!important}'+
       /* Selection and focus */
-      '.crow.sel{background:var(--brandSoft)!important;border-left:3px solid var(--brand)!important}'+
       '.tile:hover{border-color:var(--brand)!important}'+
       'input:focus,select:focus,textarea:focus{border-color:var(--brand)!important;'+
         'box-shadow:0 0 0 2px '+p.soft+'!important}'+
@@ -7436,6 +7597,618 @@ function openCreditCount(){
       requireMgr(function(){ _psr.apply(self,args); });
     };
   }
+
+})();
+
+
+
+/* ══════════════════════════════════════════════════════════════════
+   v29 — CASH INTEGRITY
+
+   A false short is worse than no figure at all, because it points at a
+   person. Four paths moved real money without telling the drawer, or
+   told it the wrong thing:
+
+   1. Voiding a cash sale did  cashSales = max(0, cashSales - total).
+      The clamp is the bug. Void a sale that was rung in an EARLIER cash
+      segment or an earlier shift and the current segment's cashSales is
+      too small to absorb it, so the expectation barely moves while a
+      real 500 pesos leaves the till. The cashier holding the drawer
+      then appears short by the whole amount.
+      A void of a cash sale is money going OUT. Record it as a refund,
+      which is additive and cannot clamp.
+
+   2. An expense paid out of the till never touched the drawer at all.
+
+   3. Voiding an utang sale left the customer still owing for it.
+
+   4. Returning goods from an utang sale paid out CASH for goods the
+      customer had never paid for.
+════════════════════════════════════════════════════════════════════ */
+(function(){
+
+  function acctOf(t){
+    if(!t || !t.custId) return null;
+    return customers.find(function(c){ return String(c.id)===String(t.custId); });
+  }
+  function wasOnAccount(t){
+    return !!(t && (t.onAccount || String(t.pay).toLowerCase()==='account'));
+  }
+
+  /* ── 1 + 3: voiding a completed receipt ── */
+  if(typeof doVoidTxn==='function'){
+    var _dv=doVoidTxn;
+    doVoidTxn=function(idx){
+      var t=txnHistory[idx];
+      var snap = t ? {pay:t.pay, total:t.total, custId:t.custId, inv:t.inv,
+                      onAccount:wasOnAccount(t), voided:t.voided} : null;
+      var cashBefore = shiftOpen() ? (shift.cashSales||0) : 0;
+      var out=_dv.apply(this,arguments);
+      if(!snap || snap.voided) return out;               /* nothing happened */
+      if(!t || !t.voided) return out;                    /* manager declined */
+
+      if(snap.pay==='cash' && shiftOpen()){
+        /* Undo the clamped subtraction and book it as money going out. */
+        shift.cashSales = r2(cashBefore);
+        shift.cashRefunds = r2((shift.cashRefunds||0) + snap.total);
+      }
+      if(snap.onAccount){
+        var c=acctOf(snap);
+        if(c){
+          postAcct(c,'payment',snap.total,'VOID '+snap.inv,'voided sale reversed');
+          toast('Utang reversed \u2014 '+esc(c.name)+' now owes '+peso(balanceOf(c)),4500,'#c39bd3');
+        }
+      }
+      saveAll();
+      try{ renderShiftBar(); }catch(e){}
+      return out;
+    };
+  }
+
+  /* ── 4: returning goods bought on account ── */
+  if(typeof processReturn==='function'){
+    var _pr=processReturn;
+    processReturn=function(){
+      var orig=null;
+      try{
+        var inv=($('rtInv')||{}).value || (window.rtOrig && rtOrig.inv);
+        orig = window.rtOrig || txnHistory.find(function(t){ return t.inv===inv; });
+      }catch(e){}
+      var onAcct = wasOnAccount(orig);
+      var refundBefore = shiftOpen() ? (shift.cashRefunds||0) : 0;
+      var n=txnHistory.length;
+      var out=_pr.apply(this,arguments);
+      if(txnHistory.length<=n) return out;               /* nothing committed */
+      var rt=txnHistory[0];
+      if(onAcct && rt && rt.type==='return'){
+        var c=acctOf(orig);
+        /* The customer never handed over cash, so no cash may leave. The
+           refund goes against what they owe instead. */
+        if(shiftOpen()) shift.cashRefunds = r2(refundBefore);
+        if(c){
+          postAcct(c,'payment',rt.total,'RTN '+rt.inv,'return credited to account');
+          rt.pay='ACCOUNT CREDIT';
+          rt.creditedToAccount=true;
+          toast('Credited to '+esc(c.name)+"'s account \u2014 now owes "+peso(balanceOf(c))+
+                ' (no cash paid out)',5500,'#c39bd3');
+        }
+        saveAll();
+        try{ renderShiftBar(); }catch(e){}
+      }
+      return out;
+    };
+  }
+
+  /* ── 2: an expense paid out of the till ── */
+  if(typeof logExpense==='function'){
+    var _le=logExpense;
+    logExpense=function(){
+      var n=expenseLogs.length;
+      var fromTill = $('exFromTill') ? $('exFromTill').checked : false;
+      var out=_le.apply(this,arguments);
+      if(expenseLogs.length>n && fromTill && shiftOpen()){
+        var e=expenseLogs[0];
+        shift.moves=shift.moves||[];
+        shift.moves.push({type:'out', amt:r2(e.amt), why:'expense \u2014 '+(e.desc||e.cat||''),
+          by:currentUser?currentUser.name:'\u2014', at:new Date().toISOString()});
+        saveAll();
+        try{ renderShiftBar(); }catch(e2){}
+        toast('\u2713 '+peso(e.amt)+' taken out of the drawer \u2014 recorded, so it will not read as short',5000);
+      }
+      return out;
+    };
+  }
+
+  /* The checkbox that makes the question explicit instead of assumed. */
+  function addTillCheckbox(){
+    /* The field is exp-amt, not exAmt. Anchoring to the wrong id meant the
+       checkbox was never inserted and the whole fix was dead. */
+    var amt=$('exp-amt'); if(!amt || $('exFromTill')) return;
+    var host=amt.parentNode; if(!host) return;
+    var w=document.createElement('label');
+    w.style.cssText='display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);'+
+      'cursor:pointer;margin:6px 0 2px';
+    w.innerHTML='<input type="checkbox" id="exFromTill" checked style="width:14px;height:14px;cursor:pointer" /> '+
+      'Paid out of the till (records a cash-out so your drawer still balances)';
+    host.parentNode.insertBefore(w, host.nextSibling);
+  }
+  var _ot=_openTab;
+  _openTab=function(t){ _ot.apply(this,arguments); try{ addTillCheckbox(); }catch(e){} };
+  try{ addTillCheckbox(); }catch(e){}
+
+  /* ══════════════════════════════════════════
+     A SELF-CHECK THE OWNER CAN RUN
+     Rebuild the expected drawer from the transaction history and compare
+     it with the running figure. If they disagree, something moved money
+     without telling the drawer — and it is better to find that here than
+     in an accusation at closing time.
+  ══════════════════════════════════════════ */
+  window.cashProof=function(){
+    if(!shiftOpen()){ toast('No shift is open',1800,'#f1c40f'); return; }
+    var segStart=new Date(shift.segOpenedAt||shift.openedAt).getTime();
+    var rows=txnHistory.filter(function(t){ return new Date(t.date).getTime()>=segStart-1500; });
+    var cashIn=r2(rows.filter(function(t){
+        return t.type!=='void' && t.type!=='return' && !t.voided && t.pay==='cash';
+      }).reduce(function(s,t){ return s+(t.total||0); },0));
+    var cashOut=r2(rows.filter(function(t){
+        return (t.type==='return' && !t.creditedToAccount && String(t.pay).indexOf('CASH')>=0) ||
+               (t.type==='void' && t.pay==='cash');
+      }).reduce(function(s,t){ return s+(t.total||0); },0));
+    var voidedCash=r2(rows.filter(function(t){ return t.voided && t.pay==='cash'; })
+      .reduce(function(s,t){ return s+(t.total||0); },0));
+    var mv=shift.moves||[];
+    var mIn=r2(mv.filter(function(m){ return m.type==='in'; }).reduce(function(s,m){ return s+m.amt; },0));
+    var mOut=r2(mv.filter(function(m){ return m.type==='out'; }).reduce(function(s,m){ return s+m.amt; },0));
+    var rebuilt=r2((shift.float||0)+cashIn-cashOut-voidedCash+mIn-mOut);
+    var running=expectedDrawer();
+    var gap=r2(running-rebuilt);
+    var line=function(l,v,c){ return '<div class="mi-row">'+l+': <span'+(c?' style="color:'+c+'"':'')+'>'+v+'</span></div>'; };
+    openModal('<div class="mbox" style="width:360px">'+mHead('&#129518; Cash proof')+
+      '<div class="mnote">The drawer figure is rebuilt from the receipts and compared with the running total. '+
+      'They should match exactly. A gap means money moved without the drawer being told \u2014 which is what '+
+      'turns into a phantom shortage at closing.</div>'+
+      '<div class="minfobox">'+
+        line('Opening float', peso(shift.float||0))+
+        line('Cash sales on the receipts', peso(cashIn))+
+        line('Cash refunds / voids paid out', '-'+peso(r2(cashOut+voidedCash)))+
+        line('Cash in (incl. utang bayad)', peso(mIn))+
+        line('Cash out (incl. expenses)', '-'+peso(mOut))+
+        '<div class="mi-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:4px">'+
+          'Rebuilt from receipts: <span><b>'+peso(rebuilt)+'</b></span></div>'+
+        line('Running drawer figure', '<b>'+peso(running)+'</b>')+
+      '</div>'+
+      (Math.abs(gap)<0.005
+        ? '<div class="mnote" style="border-color:#1e5c32;background:#0d2a18;color:#7dcea0">'+
+          '\u2713 They agree exactly. Any over/short at closing is real cash, not a wiring fault.</div>'
+        : '<div class="mwarn">\u26a0 They disagree by <b>'+peso(Math.abs(gap))+'</b>. Something moved money '+
+          'without recording it. Do not treat a shortage of this size as a person until it is explained.</div>')+
+      '<button class="mok" style="margin-top:9px" onclick="closeModal()">Close</button></div>');
+    return gap;
+  };
+
+  function wireProof(){
+    var bar=document.querySelector('#panel-reports .tbar');
+    if(bar && !$('btnProof')){
+      var b=document.createElement('button');
+      b.id='btnProof'; b.type='button'; b.className='btn btn-gy';
+      b.style.cssText='height:28px;padding:0 10px';
+      b.innerHTML='&#129518; Cash proof';
+      b.onclick=function(){ cashProof(); };
+      bar.appendChild(b);
+    }
+  }
+  var _ot2=_openTab;
+  _openTab=function(t){ _ot2.apply(this,arguments); try{ wireProof(); }catch(e){} };
+  try{ wireProof(); }catch(e){}
+
+})();
+
+
+
+/* ══════════════════════════════════════════════════════════════════
+   v30 — INVENTORY INTEGRITY
+
+   Five paths moved real goods without telling the stock count:
+
+   1. WASTE was a typed product NAME and never touched stock at all.
+      Log five spoiled Coke and the report showed the loss while the
+      shelf count still claimed you had them — so the buying list
+      under-ordered and the shrinkage never appeared in a stock take.
+   2. RETURNS always went back on the sellable shelf, damaged or not.
+   3. DELETING a product silently destroyed whatever stock it held.
+   4. EXPIRED stock could still be sold. Nothing checked.
+   5. You could SELL half a kilo but not RECEIVE half a kilo:
+      receiveStock still used parseInt after quantities went decimal.
+
+   And there was no way to answer "why does this item say 12?" — so a
+   local append-only movement ledger now backs a per-item stock card.
+════════════════════════════════════════════════════════════════════ */
+(function(){
+
+  function K(n){
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k && k.slice(-6)==='_store') return k.slice(0,-6)+'_'+n;
+      }
+    }catch(e){}
+    return 'pos_'+n;
+  }
+  var SMOVES = LS.get(K('stockmoves'), []);
+
+  /* Every movement, always recorded — independent of whether the
+     multi-terminal sync happens to be switched on. */
+  window.logStock=function(bc, delta, reason, ref){
+    if(!bc || !delta) return;
+    SMOVES.unshift({bc:String(bc), d:r2(delta), r:reason, ref:ref||'',
+      at:new Date().toISOString(), by:currentUser?currentUser.name:'\u2014'});
+    if(SMOVES.length>4000) SMOVES.length=4000;
+    LS.set(K('stockmoves'), SMOVES);
+  };
+  window.stockMoves=function(){ return SMOVES; };
+  function logBaseline(bc, qty, why){
+    SMOVES.unshift({bc:String(bc), set:r2(qty), r:'recount', ref:why||'',
+      at:new Date().toISOString(), by:currentUser?currentUser.name:'\u2014'});
+    LS.set(K('stockmoves'), SMOVES);
+  }
+  window.logStockBaseline=logBaseline;
+
+  function bothMove(bc, delta, reason, ref){
+    logStock(bc, delta, reason, ref);
+    if(typeof queueMove==='function') queueMove(bc, delta, reason, ref);
+  }
+
+  /* ── 1. waste must come off the shelf ── */
+  function wasteUI(){
+    var t=$('wst-prod'); if(!t || $('wst-pick')) return;
+    var host=t.parentNode; if(!host) return;
+    var w=document.createElement('div');
+    w.innerHTML=
+      '<label style="font-size:10px;color:var(--text3);display:block;margin:6px 0 3px">'+
+        'Pick the item so it comes off your stock count</label>'+
+      '<select id="wst-pick" onchange="wastePick()" style="width:100%;height:28px;background:var(--bg1);'+
+        'border:1px solid var(--border);border-radius:2px;color:#fff;font-size:11px;padding:0 6px">'+
+        '<option value="">\u2014 not an inventory item (ice, packaging, etc.) \u2014</option>'+
+        prods.slice().sort(function(a,b){ return a.name.localeCompare(b.name); })
+             .map(function(p){ return '<option value="'+esc(p.bc)+'">'+esc(p.name)+
+               ' \u00b7 '+p.stock+' '+esc(p.unit||'pcs')+' on hand</option>'; }).join('')+
+      '</select>'+
+      '<label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);cursor:pointer;margin:6px 0 2px">'+
+        '<input type="checkbox" id="wst-deduct" checked style="width:14px;height:14px;cursor:pointer" /> '+
+        'Take it off the stock count (leave on, or the shelf will claim you still have it)</label>';
+    host.parentNode.insertBefore(w, host.nextSibling);
+  }
+  window.wastePick=function(){
+    var bc=($('wst-pick')||{}).value;
+    var p=prods.find(function(x){ return String(x.bc)===String(bc); });
+    if(!p) return;
+    if($('wst-prod')) $('wst-prod').value=p.name;
+    if($('wst-cost')) $('wst-cost').value=r2(p.cost||0);
+  };
+
+  if(typeof logWaste==='function'){
+    var _lw=logWaste;
+    logWaste=function(){
+      var bc=($('wst-pick')||{}).value;
+      var deduct=$('wst-deduct') ? $('wst-deduct').checked : false;
+      var qty=parseFloat(($('wst-qty')||{}).value)||1;
+      var n=wasteLogs.length;
+      var out=_lw.apply(this,arguments);
+      if(wasteLogs.length<=n) return out;              /* validation refused it */
+      var w=wasteLogs[0];
+      w.bc=bc||null;
+      if(bc && deduct){
+        var p=prods.find(function(x){ return String(x.bc)===String(bc); });
+        if(p){
+          var take=Math.min(qty, p.stock);
+          p.stock=r2(p.stock-take);
+          bothMove(bc, -take, 'waste', w.reason||'');
+          if(typeof syncFlush==='function') syncFlush();
+          saveAll();
+          try{ renderRaw(); renderTiles(); updateBadges(); }catch(e){}
+          toast('\u2713 '+take+' taken off '+esc(p.name)+' \u2014 stock now '+p.stock,4500,'#e67e22');
+          if(take<qty) toast('Only '+take+' were on hand, so that is all that came off',4000,'#f1c40f');
+        }
+      } else if(bc && !deduct){
+        toast('\u26a0 Logged, but NOT deducted \u2014 your stock count still includes it',5000,'#e67e22');
+      }
+      saveAll();
+      return out;
+    };
+  }
+
+  /* ── 2. returns: are the goods actually resaleable? ── */
+  if(typeof processReturn==='function'){
+    var _pr=processReturn;
+    processReturn=function(){
+      var resale = $('rtResale') ? $('rtResale').checked : true;
+      var before={};
+      prods.forEach(function(p){ before[p.bc]=p.stock; });
+      var n=txnHistory.length;
+      var out=_pr.apply(this,arguments);
+      if(txnHistory.length<=n) return out;
+      var rt=txnHistory[0];
+      /* The resaleable case needs NOTHING here: showVoidReturnReceipt already
+         records the goods coming back. Logging it again here double-counted
+         every return and made the stock card overstate by the returned qty. */
+      if(!resale) writeOffReturn(rt);
+      return out;
+    };
+  }
+  /* Exposed as its own step so it can be exercised directly. */
+  window.writeOffReturn=function(rt){
+    if(!rt || !rt.items) return 0;
+    var n=0;
+    rt.items.forEach(function(i){
+      var p=prods.find(function(x){ return String(x.bc)===String(i.bc); });
+      if(!p) return;
+      var q=Math.abs(i.qty);
+      p.stock=r2(p.stock-q);
+      wasteLogs.unshift({prod:p.name, bc:p.bc, qty:q, cost:r2(p.cost||0),
+        total:r2((p.cost||0)*q), reason:'returned damaged \u2014 '+rt.inv, date:new Date()});
+      logStock(i.bc, -q, 'waste', 'damaged return '+rt.inv);
+      if(typeof queueMove==='function') queueMove(i.bc, -q, 'waste', 'damaged return '+rt.inv);
+      n++;
+    });
+    if(n){
+      try{ if(typeof saveWE==='function') saveWE(); renderRaw(); renderTiles(); }catch(e){}
+      saveAll();
+      toast('Returned goods written off as damaged \u2014 not back on the shelf',5000,'#e67e22');
+    }
+    return n;
+  };
+
+  function returnUI(){
+    var host=$('rtMode') || $('rtWhy'); if(!host || $('rtResale')) return;
+    var w=document.createElement('label');
+    w.style.cssText='display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);'+
+      'cursor:pointer;margin:6px 0 2px';
+    w.innerHTML='<input type="checkbox" id="rtResale" checked style="width:14px;height:14px;cursor:pointer" /> '+
+      'Goods can be sold again (untick if damaged or opened \u2014 it will be written off instead)';
+    if(host.parentNode) host.parentNode.insertBefore(w, host.nextSibling);
+  }
+
+  /* ── 3. deleting a product must not destroy its value silently ── */
+  if(typeof deleteItem==='function'){
+    var _di=deleteItem;
+    deleteItem=function(idx){
+      var p=prods[idx];
+      var snap = p ? {bc:p.bc, name:p.name, stock:p.stock, cost:p.cost||0} : null;
+      var out=_di.apply(this,arguments);
+      if(snap && snap.stock>0.004 && !prods.some(function(x){ return x.bc===snap.bc; })){
+        wasteLogs.unshift({prod:snap.name, bc:snap.bc, qty:snap.stock, cost:r2(snap.cost),
+          total:r2(snap.cost*snap.stock), reason:'item deleted with stock on hand', date:new Date()});
+        logStock(snap.bc, -snap.stock, 'recount', 'item deleted');
+        try{ if(typeof saveWE==='function') saveWE(); }catch(e){}
+        saveAll();
+        toast('\u26a0 '+snap.name+' had '+snap.stock+' on hand \u2014 '+peso(r2(snap.cost*snap.stock))+
+              ' written off so it is not lost silently',6000,'#e67e22');
+      }
+      return out;
+    };
+  }
+
+  /* ── 4. expired stock should not be sold by accident ── */
+  var expiredOK=false;
+  if(typeof checkout==='function'){
+    var _co=checkout;
+    checkout=function(){
+      if(!expiredOK){
+        var bad=cart.filter(function(i){
+          var p=prods.find(function(x){ return String(x.bc)===String(i.bc); });
+          if(!p||!p.exp) return false;
+          return new Date(p.exp).setHours(23,59,59) < Date.now();
+        });
+        if(bad.length){
+          openModal('<div class="mbox">'+mHead('&#9888; Expired stock in this sale')+
+            '<div class="mwarn">These lines are past their expiry date:</div>'+
+            '<div class="minfobox">'+bad.map(function(i){
+              var p=prods.find(function(x){ return String(x.bc)===String(i.bc); });
+              return '<div class="mi-row">'+esc(i.name)+': <span style="color:var(--red)">expired '+
+                new Date(p.exp).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})+'</span></div>';
+            }).join('')+'</div>'+
+            '<div class="mnote">Selling expired goods is a health risk and your problem, not the customer&#8217;s. '+
+            'Take them off the shelf and write them off under Waste.</div>'+
+            '<div class="m2btn">'+
+              '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Go back</button>'+
+              '<button onclick="allowExpiredSale()" style="background:#922b21;color:#fff;border:none">Manager: sell anyway</button>'+
+            '</div></div>');
+          return;
+        }
+      }
+      expiredOK=false;
+      var before={};
+      cart.forEach(function(i){ before[i.bc]=i.qty; });
+      var inv=counters.inv;
+      var out=_co.apply(this,arguments);
+      if(counters.inv>inv && lastRcpt){
+        (lastRcpt.items||[]).forEach(function(i){
+          if(i._open) return;
+          logStock(i.bc, -Math.abs(i.qty), 'sale', lastRcpt.inv);
+        });
+      }
+      return out;
+    };
+  }
+  window.allowExpiredSale=function(){
+    closeModal();
+    requireMgr(function(){ expiredOK=true; checkout(); });
+  };
+
+  /* ── 5. you could sell half a kilo but not receive one ── */
+  if(typeof receiveStock==='function'){
+    var _rs=receiveStock;
+    receiveStock=function(){
+      var n=stockLogs.length;
+      var out=_rs.apply(this,arguments);
+      if(stockLogs.length>n){
+        var l=stockLogs[0];
+        logStock(l.bc, Math.abs(l.qty), 'stockin', l.ref||'');
+      }
+      return out;
+    };
+  }
+
+  /* Void and return documents move goods back. */
+  if(typeof showVoidReturnReceipt==='function'){
+    var _svr=showVoidReturnReceipt;
+    showVoidReturnReceipt=function(rcpt){
+      try{
+        if(rcpt && !rcpt._stockLogged){
+          rcpt._stockLogged=true;
+          (rcpt.items||[]).forEach(function(i){
+            if(i._open) return;
+            logStock(i.bc, Math.abs(i.qty), rcpt.type||'return', rcpt.inv);
+          });
+        }
+      }catch(e){}
+      return _svr.apply(this,arguments);
+    };
+  }
+
+  /* Baselines: a recount or a manual edit resets the card. */
+  if(typeof applyStockTake==='function'){
+    var _ast=applyStockTake;
+    applyStockTake=function(){
+      var out=_ast.apply(this,arguments);
+      prods.forEach(function(p){ /* baselines written by the take itself below */ });
+      return out;
+    };
+  }
+  if(typeof saveEdit==='function'){
+    var _se=saveEdit;
+    saveEdit=function(idx){
+      var was=prods[idx]?prods[idx].stock:0;
+      var out=_se.apply(this,arguments);
+      var p=prods[idx];
+      if(p && r2(p.stock-was)!==0) logBaseline(p.bc, p.stock, 'manual edit');
+      return out;
+    };
+  }
+  if(typeof regItem==='function'){
+    var _ri=regItem;
+    regItem=function(){
+      var n=prods.length;
+      var out=_ri.apply(this,arguments);
+      if(prods.length>n){
+        var p=prods[prods.length-1];
+        logBaseline(p.bc, p.stock, 'registered');
+      }
+      return out;
+    };
+  }
+
+  /* ══════════════════════════════════════════
+     STOCK CARD — why does this item say 12?
+  ══════════════════════════════════════════ */
+  window.stockCard=function(bc){
+    var moves=SMOVES.filter(function(m){ return String(m.bc)===String(bc); })
+                    .slice().sort(function(a,b){ return new Date(a.at)-new Date(b.at); });
+    var last=-1;
+    moves.forEach(function(m,i){ if(m.set!==undefined) last=i; });
+    var start = last>=0 ? moves[last].set : 0;
+    var rows=[], run=start;
+    var from = last>=0 ? last : 0;
+    if(last>=0) rows.push({at:moves[last].at, r:'baseline', by:moves[last].by, d:null, run:run, ref:moves[last].ref});
+    for(var i=(last>=0?last+1:0); i<moves.length; i++){
+      var m=moves[i];
+      if(m.set!==undefined){ run=m.set; rows.push({at:m.at,r:'baseline',by:m.by,d:null,run:run,ref:m.ref}); continue; }
+      run=r2(run+m.d);
+      rows.push({at:m.at, r:m.r, by:m.by, d:m.d, run:run, ref:m.ref});
+    }
+    return {rows:rows, expected:run, hasBaseline:last>=0};
+  };
+
+  window.showStockCard=function(bc){
+    var p=prods.find(function(x){ return String(x.bc)===String(bc); });
+    if(!p){ toast('Item not found',1800,'#e74c3c'); return; }
+    var c=stockCard(bc);
+    var gap=r2(p.stock-c.expected);
+    var COL={sale:'var(--red)',stockin:'var(--green)',waste:'var(--orange)',
+             'return':'var(--green)',void:'var(--green)',recount:'var(--yellow)',baseline:'var(--text4)'};
+    openModal('<div class="mbox" style="width:390px">'+mHead('&#128220; Stock card \u2014 '+esc(p.name))+
+      (!c.hasBaseline
+        ? '<div class="mnote">No recount has been done yet, so this card starts from zero and only proves '+
+          'movements since the ledger began. Do a stock take to set a baseline.</div>'
+        : '')+
+      '<div class="minfobox">'+
+        '<div class="mi-row">On hand now: <span><b>'+p.stock+' '+esc(p.unit||'pcs')+'</b></span></div>'+
+        '<div class="mi-row">Rebuilt from movements: <span><b>'+c.expected+'</b></span></div>'+
+        '<div class="mi-row">Difference: <span style="color:'+(Math.abs(gap)<0.005?'var(--green)':'var(--red)')+
+          '"><b>'+(gap>0?'+':'')+gap+'</b></span></div>'+
+      '</div>'+
+      (Math.abs(gap)<0.005
+        ? '<div class="mnote" style="border-color:#1e5c32;background:#0d2a18;color:#7dcea0">'+
+          '\u2713 Every unit is accounted for.</div>'
+        : '<div class="mwarn">\u26a0 '+Math.abs(gap)+' unit(s) '+(gap>0?'more':'fewer')+
+          ' than the movements explain. Something changed the count without recording why.</div>')+
+      '<div style="max-height:260px;overflow-y:auto;margin-top:8px"><table class="mtbl"><thead><tr>'+
+      '<th>When</th><th>What</th><th>Who</th><th class="r">Qty</th><th class="r">Running</th>'+
+      '</tr></thead><tbody>'+
+      c.rows.slice().reverse().slice(0,120).map(function(r){
+        return '<tr><td style="white-space:nowrap">'+new Date(r.at).toLocaleDateString('en-PH',
+                 {month:'short',day:'numeric'})+'</td>'+
+          '<td style="color:'+(COL[r.r]||'var(--text2)')+'">'+esc(r.r)+
+            (r.ref?'<div style="font-size:9px;color:var(--text3)">'+esc(r.ref)+'</div>':'')+'</td>'+
+          '<td>'+esc(r.by||'\u2014')+'</td>'+
+          '<td class="r">'+(r.d===null?'set':(r.d>0?'+'+r.d:r.d))+'</td>'+
+          '<td class="r"><b>'+r.run+'</b></td></tr>';
+      }).join('')+'</tbody></table></div>'+
+      '<button class="mok" style="margin-top:9px" onclick="closeModal()">Close</button></div>');
+  };
+
+  /* ══════════════════════════════════════════
+     INVENTORY PROOF — the whole catalogue at once
+  ══════════════════════════════════════════ */
+  window.inventoryProof=function(){
+    var bad=[], noBase=0;
+    prods.forEach(function(p){
+      var c=stockCard(p.bc);
+      if(!c.hasBaseline){ noBase++; return; }
+      var gap=r2(p.stock-c.expected);
+      if(Math.abs(gap)>0.004) bad.push({p:p, gap:gap, exp:c.expected});
+    });
+    openModal('<div class="mbox" style="width:390px">'+mHead('&#129518; Inventory proof')+
+      '<div class="mnote">Every item&#8217;s count is rebuilt from its recorded movements and compared with '+
+      'what the shelf record says. A difference means something moved goods without writing it down.</div>'+
+      '<div class="minfobox">'+
+        '<div class="mi-row">Items checked: <span>'+(prods.length-noBase)+' of '+prods.length+'</span></div>'+
+        '<div class="mi-row">No baseline yet: <span>'+noBase+' \u2014 do a stock take</span></div>'+
+        '<div class="mi-row">Unexplained: <span style="color:'+(bad.length?'var(--red)':'var(--green)')+'">'+
+          bad.length+'</span></div>'+
+      '</div>'+
+      (bad.length
+        ? '<div style="max-height:250px;overflow-y:auto;margin-top:8px"><table class="mtbl"><thead><tr>'+
+          '<th>Item</th><th class="r">On hand</th><th class="r">Explained</th><th class="r">Gap</th><th></th>'+
+          '</tr></thead><tbody>'+bad.sort(function(a,b){ return Math.abs(b.gap)-Math.abs(a.gap); })
+          .map(function(x){
+            return '<tr><td>'+esc(x.p.name)+'</td><td class="r">'+x.p.stock+'</td>'+
+              '<td class="r">'+x.exp+'</td>'+
+              '<td class="r" style="color:var(--red)"><b>'+(x.gap>0?'+':'')+x.gap+'</b></td>'+
+              '<td><button onclick="closeModal();showStockCard(\''+esc(x.p.bc)+'\')" '+
+                'style="background:none;border:1px solid var(--border);border-radius:2px;color:var(--text4);'+
+                'font-size:9px;padding:2px 6px;cursor:pointer">Card</button></td></tr>';
+          }).join('')+'</tbody></table></div>'
+        : '<div class="mnote" style="border-color:#1e5c32;background:#0d2a18;color:#7dcea0">'+
+          '\u2713 Every item with a baseline reconciles exactly.</div>')+
+      '<button class="mok" style="margin-top:9px" onclick="closeModal()">Close</button></div>');
+  };
+
+  function wire(){
+    wasteUI(); returnUI();
+    var rep=document.querySelector('#panel-reports .tbar');
+    if(rep && !$('btnInvProof')){
+      var b=document.createElement('button');
+      b.id='btnInvProof'; b.type='button'; b.className='btn btn-gy';
+      b.style.cssText='height:28px;padding:0 10px';
+      b.innerHTML='&#129518; Inventory proof';
+      b.onclick=function(){ inventoryProof(); };
+      rep.appendChild(b);
+    }
+  }
+  var _ot=_openTab;
+  _openTab=function(t){ _ot.apply(this,arguments); try{ wire(); }catch(e){} };
+  try{ wire(); }catch(e){}
 
 })();
 
