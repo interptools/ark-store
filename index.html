@@ -776,7 +776,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1787625334755",sk="my_tindahan_build_stamp";
+  var stamp="1787627046964",sk="my_tindahan_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("my_tindahan_users");
     localStorage.removeItem("my_tindahan_store");
@@ -797,7 +797,7 @@ const LS = {
 };
 
 let USERS = (()=>{
-  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$536iuzs6bn3r13021bn","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$aa2xsrbczikr11lvzrc","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$dvolso21pf401s2xqjo","color":"#1a6e3a","mustChange":true}]);
+  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$1w8w38t13o2u0u1y4xejw","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$4lvvybwojbveel7at","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$o06qqf1d30q01uvks2e","color":"#1a6e3a","mustChange":true}]);
   return u;
 })();
 
@@ -1023,7 +1023,7 @@ function cardLabel(c){
    stops PINs sitting in localStorage as readable plain text.
    ════════════════════════════════════════ */
 const PIN_SALT='mystore.pos.v2';
-const PIN_SALT2='964fdf62f39efef7918bc1e61cc04095';
+const PIN_SALT2='5c526341bc3e24030f8bc3f61dea61bb';
 function hashPin(pin){
   let h1=0x811c9dc5, h2=0x1000193;
   const str=PIN_SALT+':'+pin+':'+PIN_SALT;
@@ -1628,7 +1628,7 @@ function renderCart(){
       <td style="color:#5d9ec0;font-family:'Courier New',monospace;font-size:10px">${item.code}</td>
       <td style="color:#e8f4ff;font-weight:500">${esc(item.name)}</td>
       <td style="color:#4a7a96;font-family:'Courier New',monospace;font-size:10px">${item.bc}</td>
-      <td class="r"><input class="qi" type="number" min="1" value="${item.qty}" onclick="event.stopPropagation()" onchange="setQty(${i},this.value)" /></td>
+      <td class="r"><input class="qi" type="number" min="0.001" step="0.001" value="${item.qty}" onclick="event.stopPropagation()" onchange="setQty(${i},this.value)" /></td>
       <td class="r" style="color:var(--green)">${peso(item.price)}</td>
       <td class="r" style="color:var(--red)">${disc}</td>
       <td class="r" style="color:#7f8c8d">${peso(vat)}</td>
@@ -1640,7 +1640,7 @@ function renderCart(){
 }
 
 function setQty(i,v){
-  const q=Math.max(1,parseInt(v)||1);
+  const q=Math.max(0.001,parseFloat(v)||1);
   const p=prods.find(x=>x.bc===cart[i].bc);
   cart[i].qty=p?Math.min(q,p.stock):q;
   if(p&&q>p.stock) toast('Max stock: '+p.stock,'1500','#f1c40f');
@@ -1963,7 +1963,7 @@ function npDel(){ npBuf=npBuf.slice(0,-1); $('npDisp').textContent=npBuf||'0'; }
 function npApply(){
   if(!npBuf){ toast('Enter qty first','1500','#f1c40f'); return; }
   if(selRow<0||selRow>=cart.length){ toast('Select a row first','1500','#f1c40f'); return; }
-  setQty(selRow,parseInt(npBuf)); npBuf=''; $('npDisp').textContent='0';
+  setQty(selRow,parseFloat(npBuf)); npBuf=''; $('npDisp').textContent='0';
 }
 
 function applyItemDisc(){
@@ -2159,7 +2159,10 @@ function checkout(){
   // commit stock (block the sale rather than silently clamping to 0)
   for(const item of cart){
     const p=prods.find(x=>x.bc===item.bc);
-    if(!p){ toast(item.name+' no longer exists in inventory','2200','#e74c3c'); return; }
+    if(!p){
+      if(item._open) continue;   // open item: no stock record by design
+      toast(item.name+' no longer exists in inventory','2200','#e74c3c'); return;
+    }
     if(p.stock<item.qty){ toast('Only '+p.stock+' left of '+p.name,'2200','#e74c3c'); return; }
   }
   cart.forEach(item=>{ const p=prods.find(x=>x.bc===item.bc); if(p) p.stock=r2(p.stock-item.qty); });
@@ -2789,7 +2792,7 @@ function zReading(preAuthed){
       readingRows(f)+
       '<div style="border-top:1px solid var(--border);margin:8px 0"></div>'+drawerRows(f)+
       (shiftOpen()?('<label class="mlbl" style="margin-top:8px">Actual cash counted in drawer</label>'+
-        '<input class="minp" id="zCount" type="number" min="0" step="0.01" placeholder="0.00" value="'+(pendingShiftClose?pendingShiftClose.counted:'')+'" oninput="zVariance()" />'+buildMNP('zCount')+
+        '<input class="minp" id="zCount" type="number" min="0" step="0.01" placeholder="0.00" value="'+(pendingShiftClose?pendingShiftClose.counted:'')+'" oninput="zVariance()" />'+(typeof denomPad==='function'?denomPad('zCount'):buildMNP('zCount'))+
         '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;padding:4px 2px"><span style="color:var(--text3)">Over / (Short)</span><span id="zVar" style="color:var(--yellow);font-family:\'Courier New\',monospace">\u20b10.00</span></div>'):'')+
       '<div class="mwarn" style="margin-top:8px">&#9888; This finalises '+bizDate+'. Day counters reset, the shift closes and the reading is archived permanently. Sales for the day can no longer be voided \u2014 only returned.</div>'+
       '<div class="m2btn"><button onclick="cancelZ()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Cancel</button>'+
@@ -4799,7 +4802,7 @@ function openCreditCount(){
       '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;padding:4px 2px 8px">'+
         '<span style="color:var(--text3)">Over / (Short)</span>'+
         '<span id="csVarTxt" style="color:var(--yellow);font-family:Courier New,monospace">&#8369;0.00</span></div>'+
-      buildMNP('csCount')+
+      (typeof denomPad==='function'?denomPad('csCount'):buildMNP('csCount'))+
       '<label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);cursor:pointer;margin-bottom:9px">'+
         '<input type="checkbox" id="csPrint" checked style="width:14px;height:14px;cursor:pointer" />'+
         'Print the shift report (all receipt numbers issued this shift) on time-out</label>'+
@@ -5314,7 +5317,7 @@ function openCreditCount(){
     return { bc:i.bc, code:i.code, name:i.name, qty:i.qty,
              price:i.price, cost:i.cost||0,
              iDisc:i.iDisc||0, iDiscType:i.iDiscType||'pct',
-             vx:!!i.vx, retQty:0 };
+             vx:!!i.vx, retQty:0, _open:!!i._open };
   };
 
   /* ══════════════════════════════════════════
@@ -6132,6 +6135,541 @@ function openCreditCount(){
       });
     };
   }
+
+})();
+
+
+
+/* ══════════════════════════════════════════════════════════════════
+   v23 — BUG FIXES + THE REPORTS THE OWNER ACTUALLY NEEDS
+   1. Hold becomes a queue instead of a single slot that ate baskets.
+   2. Change Rate is gated and logged like every other price control.
+   3. Exception log screen: voids, price changes, overrides, all readable.
+   4. Buying list, stock take, staff performance, hourly curve.
+   5. Denomination grid for counting the drawer.
+   6. Open / miscellaneous item for the unbarcoded one-off.
+════════════════════════════════════════════════════════════════════ */
+(function(){
+
+  function K(n){
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k && k.slice(-6)==='_store') return k.slice(0,-6)+'_'+n;
+      }
+    }catch(e){}
+    return 'pos_'+n;
+  }
+  var PLOG = LS.get(K('pricelogs'), []);      /* price overrides */
+  function logPrice(rec){
+    PLOG.unshift(rec);
+    if(PLOG.length>500) PLOG.length=500;
+    LS.set(K('pricelogs'), PLOG);
+  }
+  window.priceLogs=function(){ return PLOG; };
+
+  /* ══════════════════════════════════════════
+     1. HOLD IS A QUEUE
+     A single slot meant the second hold destroyed the first, silently,
+     at exactly the moment the counter is busiest.
+  ══════════════════════════════════════════ */
+  var HOLDS = LS.get(K('holds'), []);
+  function saveHolds(){ LS.set(K('holds'), HOLDS); }
+  function holdLabel(h){
+    var n=h.cart.reduce(function(s,i){ return s+i.qty; },0);
+    return h.ref+' \u00b7 '+h.cart.length+' line(s), '+n+' item(s) \u00b7 '+peso(h.total);
+  }
+
+  holdTrans=function(){
+    if(!cart.length){ toast('Cart is empty','1500','#f1c40f'); return; }
+    var t=cartTotals();
+    var ref='HOLD-'+String(HOLDS.length+1).padStart(2,'0')+'-'+
+            new Date().toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+    HOLDS.unshift({ref:ref, at:new Date().toISOString(), by:currentUser?currentUser.name:'\u2014',
+      cart:cart.map(function(i){ return Object.assign({},i); }), total:t.total,
+      cust:($('hCust')||{}).value||'', disc:($('hDisc')||{}).value||'0',
+      discType:($('hDiscType')||{}).value||'pct', senior:!!($('hSenior')||{}).checked});
+    if(HOLDS.length>20) HOLDS.length=20;
+    saveHolds();
+    cart=[]; selRow=-1; renderCart(); updateHoldBadge();
+    toast('Held as '+ref+' \u2014 '+HOLDS.length+' sale(s) on hold',3000,'#f1c40f');
+  };
+
+  recallTrans=function(){
+    if(!HOLDS.length){ toast('No held transactions','1500','#f1c40f'); return; }
+    if(cart.length){
+      toast('Finish or hold the open sale first','2200','#f1c40f'); return;
+    }
+    if(HOLDS.length===1){ doRecall(0); return; }
+    openModal('<div class="mbox" style="width:340px">'+mHead('&#128260; Recall a held sale')+
+      '<div class="mnote">'+HOLDS.length+' sale(s) on hold. Nothing is lost by holding several \u2014 '+
+      'each one keeps its own basket, customer and discount.</div>'+
+      '<div style="max-height:280px;overflow-y:auto">'+
+      HOLDS.map(function(h,k){
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 9px;background:var(--bg3);'+
+          'border:1px solid var(--border);border-radius:3px;margin-bottom:5px">'+
+          '<div style="flex:1"><div style="font-size:11px;color:var(--text);font-weight:500">'+esc(holdLabel(h))+'</div>'+
+          '<div style="font-size:9px;color:var(--text3)">'+esc(h.by)+' \u00b7 '+hhmmLocal(h.at)+
+          (h.cust?' \u00b7 customer attached':'')+'</div></div>'+
+          '<button onclick="doRecall('+k+')" style="height:26px;padding:0 10px;background:#1a6e3a;color:#fff;'+
+            'border:none;border-radius:3px;font-size:11px;cursor:pointer">Recall</button>'+
+          '<button onclick="dropHold('+k+')" style="height:26px;padding:0 8px;background:none;color:var(--red);'+
+            'border:1px solid #4a1a1a;border-radius:3px;font-size:11px;cursor:pointer">&#10005;</button>'+
+        '</div>';
+      }).join('')+'</div>'+
+      '<button class="mok" style="margin-top:8px" onclick="closeModal()">Close</button></div>');
+  };
+  function hhmmLocal(d){ return new Date(d).toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'}); }
+
+  window.doRecall=function(k){
+    var h=HOLDS[k]; if(!h) return;
+    cart=h.cart.map(function(i){ return Object.assign({},i); });
+    selRow=cart.length?0:-1;
+    if($('hDisc')) $('hDisc').value=h.disc||'0';
+    if($('hDiscType')) $('hDiscType').value=h.discType||'pct';
+    if($('hSenior')) $('hSenior').checked=!!h.senior;
+    if($('hCust') && h.cust) $('hCust').value=h.cust;
+    HOLDS.splice(k,1); saveHolds();
+    closeModal(); renderCart(); updateHoldBadge();
+    toast('Recalled '+h.ref);
+  };
+  window.dropHold=function(k){
+    var h=HOLDS[k]; if(!h) return;
+    requireMgr(function(){
+      HOLDS.splice(k,1); saveHolds(); updateHoldBadge();
+      closeModal(); toast('Discarded '+h.ref,2500,'#e74c3c');
+      if(HOLDS.length) recallTrans();
+    });
+  };
+  function updateHoldBadge(){
+    var b=$('holdBadge');
+    if(!b){
+      var bar=$('shiftBar'); if(!bar) return;
+      b=document.createElement('button');
+      b.id='holdBadge'; b.type='button'; b.className='sb-btn';
+      b.onclick=function(){ recallTrans(); };
+      var ref=$('sbReport');
+      if(ref&&ref.parentNode) ref.parentNode.insertBefore(b,ref); else bar.appendChild(b);
+    }
+    if(!HOLDS.length){ b.style.display='none'; return; }
+    b.style.display='inline-block';
+    b.innerHTML='&#128260; '+HOLDS.length+' on hold';
+    b.style.background='#3a3000'; b.style.color='var(--yellow)'; b.style.borderColor='#5a4a00';
+  }
+  window.updateHoldBadge=updateHoldBadge;
+
+  /* ══════════════════════════════════════════
+     2. CHANGE RATE IS A PRICE CONTROL, NOT A FREE HAND
+     A cashier who could not give a 21% discount could set the price to
+     ₱1 with no PIN and no record. Same gate, and it is written down.
+  ══════════════════════════════════════════ */
+  applyRate=function(){
+    var v=parseFloat(($('rateIn')||{}).value);
+    if(isNaN(v)||v<0){ closeModal(); return; }
+    if(selRow<0||selRow>=cart.length){ closeModal(); return; }
+    var item=cart[selRow];
+    var was=item.price;
+    var cut = was>0 ? (was-v)/was*100 : 0;
+    var commit=function(){
+      item.price=v;
+      logPrice({at:new Date().toISOString(), by:currentUser?currentUser.name:'\u2014',
+        name:item.name, bc:item.bc, was:r2(was), now:r2(v), pct:r2(cut),
+        below:(item.cost&&v<item.cost)?true:false});
+      renderCart(); closeModal();
+      toast('Price changed \u2014 logged'+((item.cost&&v<item.cost)?' (BELOW COST)':''),
+            3000,(item.cost&&v<item.cost)?'#e67e22':'#2ecc71');
+    };
+    /* A price cut is a discount by another name, so it gets the same rule. */
+    if(cut>20 && currentUser && currentUser.role!=='Manager'){ closeModal(); requireMgr(commit); }
+    else commit();
+  };
+
+  /* ══════════════════════════════════════════
+     3. EXCEPTION LOG — voids, price changes, overrides
+  ══════════════════════════════════════════ */
+  window.showExceptionLog=function(){
+    var rows=[];
+    (voidLogs||[]).forEach(function(v){
+      rows.push({at:v.at, kind:'Void (open sale)', who:v.by,
+        detail:v.lines+' line(s) \u00b7 '+peso(v.amount)+' \u2014 '+esc(v.reason||''), col:'var(--red)'});
+    });
+    txnHistory.filter(function(t){ return t.voided||t.type==='void'; }).forEach(function(t){
+      rows.push({at:t.voidedAt||t.date, kind:'Void (receipt)', who:t.voidedBy||t.cashier,
+        detail:esc(t.inv)+' \u00b7 '+peso(t.total)+' \u2014 '+esc(t.voidReason||t.reason||''), col:'var(--red)'});
+    });
+    txnHistory.filter(function(t){ return t.type==='return'; }).forEach(function(t){
+      rows.push({at:t.date, kind:'Return', who:t.cashier,
+        detail:esc(t.inv)+' vs '+esc(t.origInv||'')+' \u00b7 '+peso(t.total)+' \u2014 '+esc(t.reason||''), col:'var(--orange)'});
+    });
+    PLOG.forEach(function(p){
+      rows.push({at:p.at, kind:'Price change', who:p.by,
+        detail:esc(p.name)+' '+peso(p.was)+' \u2192 '+peso(p.now)+' ('+p.pct.toFixed(0)+'% off)'+
+               (p.below?' <b style="color:var(--red)">BELOW COST</b>':''), col:'var(--yellow)'});
+    });
+    txnHistory.filter(function(t){ return (t.disc||0)>0 || (t.senDisc||0)>0; }).forEach(function(t){
+      if((t.disc||0)<=0) return;
+      rows.push({at:t.date, kind:'Bill discount', who:t.cashier,
+        detail:esc(t.inv)+' \u00b7 -'+peso(t.disc), col:'var(--text4)'});
+    });
+    rows.sort(function(a,b){ return new Date(b.at)-new Date(a.at); });
+
+    if(!rows.length){ toast('No exceptions recorded yet',2200); return; }
+    openModal('<div class="mbox" style="width:390px">'+mHead('&#9888; Exception log')+
+      '<div class="mnote">Every void, return, price override and bill discount, newest first. '+
+      'This is the screen a manager reads when the drawer is short.</div>'+
+      '<div style="max-height:320px;overflow-y:auto"><table class="mtbl"><thead><tr>'+
+      '<th>When</th><th>What</th><th>Who</th><th>Detail</th></tr></thead><tbody>'+
+      rows.slice(0,200).map(function(r){
+        return '<tr><td style="white-space:nowrap">'+new Date(r.at).toLocaleString('en-PH',
+                 {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})+'</td>'+
+          '<td style="color:'+r.col+';white-space:nowrap">'+r.kind+'</td>'+
+          '<td>'+esc(r.who||'\u2014')+'</td><td>'+r.detail+'</td></tr>';
+      }).join('')+'</tbody></table></div>'+
+      '<div class="m2btn" style="margin-top:9px">'+
+        '<button onclick="exportExceptionsCsv()" style="background:#1a5c8a;color:#fff;border:none">&#8659; CSV</button>'+
+        '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Close</button>'+
+      '</div></div>');
+    window._excRows=rows;
+  };
+  window.exportExceptionsCsv=function(){
+    var rows=window._excRows||[];
+    var out=[['when','type','who','detail'].join(',')].concat(rows.map(function(r){
+      return [new Date(r.at).toISOString(), r.kind, r.who||'',
+              String(r.detail).replace(/<[^>]*>/g,'')].map(csvCell).join(',');
+    }));
+    dlFile('exceptions_'+new Date().toISOString().slice(0,10)+'.csv', out.join('\n'));
+    toast('Exception log exported');
+  };
+
+  /* ══════════════════════════════════════════
+     4a. BUYING LIST
+     Reorder level and supplier were already on every product and sales
+     velocity is in the history; nothing put them together.
+  ══════════════════════════════════════════ */
+  function velocity(bc, days){
+    var since=Date.now()-days*86400000, n=0;
+    txnHistory.forEach(function(t){
+      if(t.type==='void'||t.type==='return'||t.voided) return;
+      if(new Date(t.date).getTime()<since) return;
+      (t.items||[]).forEach(function(i){ if(String(i.bc)===String(bc)) n+=i.qty; });
+    });
+    return n;
+  }
+  window.showBuyingList=function(days){
+    days=days||14;
+    var list=prods.map(function(p){
+      var sold=velocity(p.bc,days);
+      var perDay=sold/days;
+      var cover=perDay>0?(p.stock/perDay):999;
+      var target=Math.max((p.rl||5)*2, Math.ceil(perDay*days));
+      var need=Math.max(0, Math.ceil(target-p.stock));
+      return {p:p, sold:sold, perDay:perDay, cover:cover, need:need};
+    }).filter(function(x){ return x.need>0 && (x.sold>0 || x.p.stock<=(x.p.rl||5)); })
+      .sort(function(a,b){ return a.cover-b.cover; });
+
+    if(!list.length){ toast('Nothing needs reordering right now',2600,'#2ecc71'); return; }
+    var bySup={}, order=[];
+    list.forEach(function(x){
+      var s=x.p.sup||'(no supplier set)';
+      if(!bySup[s]){ bySup[s]=[]; order.push(s); }
+      bySup[s].push(x);
+    });
+    var cost=r2(list.reduce(function(s,x){ return s+(x.p.cost||0)*x.need; },0));
+
+    openModal('<div class="mbox" style="width:390px">'+mHead('&#128722; Buying list')+
+      '<div class="mnote">What to buy, from <b>'+days+' days</b> of sales. Suggested quantity brings each item '+
+      'back to about '+days+' days of cover. Estimated cost <b>'+peso(cost)+'</b>.</div>'+
+      '<div style="max-height:320px;overflow-y:auto">'+
+      order.map(function(s){
+        return '<div style="font-size:11px;font-weight:700;color:var(--text4);margin:8px 0 4px">'+esc(s)+'</div>'+
+          '<table class="mtbl"><thead><tr><th>Item</th><th class="r">Stock</th><th class="r">Sold</th>'+
+          '<th class="r">Days left</th><th class="r">Buy</th></tr></thead><tbody>'+
+          bySup[s].map(function(x){
+            var urgent=x.cover<3;
+            return '<tr><td>'+esc(x.p.name)+'</td>'+
+              '<td class="r" style="color:'+(urgent?'var(--red)':'var(--text2)')+'">'+x.p.stock+'</td>'+
+              '<td class="r">'+x.sold+'</td>'+
+              '<td class="r">'+(x.cover>99?'\u2014':x.cover.toFixed(1))+'</td>'+
+              '<td class="r" style="color:var(--green);font-weight:600">'+x.need+'</td></tr>';
+          }).join('')+'</tbody></table>';
+      }).join('')+'</div>'+
+      '<div class="m2btn" style="margin-top:9px">'+
+        '<button onclick="exportBuyingCsv('+days+')" style="background:#1a6e3a;color:#fff;border:none">&#8659; Send to supplier (CSV)</button>'+
+        '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Close</button>'+
+      '</div></div>');
+  };
+  window.exportBuyingCsv=function(days){
+    days=days||14;
+    var rows=[['supplier','barcode','item','on_hand','sold_'+days+'d','days_cover','order_qty','unit_cost','line_cost'].join(',')];
+    prods.forEach(function(p){
+      var sold=velocity(p.bc,days), perDay=sold/days;
+      var cover=perDay>0?(p.stock/perDay):999;
+      var target=Math.max((p.rl||5)*2, Math.ceil(perDay*days));
+      var need=Math.max(0, Math.ceil(target-p.stock));
+      if(!need || (sold<=0 && p.stock>(p.rl||5))) return;
+      rows.push([p.sup||'', p.bc, p.name, p.stock, sold, cover>99?'':cover.toFixed(1),
+                 need, r2(p.cost||0), r2((p.cost||0)*need)].map(csvCell).join(','));
+    });
+    dlFile('buying_list_'+new Date().toISOString().slice(0,10)+'.csv', rows.join('\n'));
+    toast('Buying list exported \u2014 send it to your supplier');
+  };
+
+  /* ══════════════════════════════════════════
+     4b. STOCK TAKE
+     Without a physical count, shrinkage is invisible: a store cannot
+     tell theft from breakage from a miscount.
+  ══════════════════════════════════════════ */
+  window.showStockTake=function(cat){
+    var list=prods.filter(function(p){ return !cat||p.cat===cat; })
+                  .sort(function(a,b){ return a.name.localeCompare(b.name); });
+    if(!list.length){ toast('No products to count',2000,'#f1c40f'); return; }
+    var cats=[''].concat([...new Set(prods.map(function(p){ return p.cat; }).filter(Boolean))].sort());
+    openModal('<div class="mbox" style="width:390px">'+mHead('&#128203; Stock take')+
+      '<div class="mnote">Count the shelf and type what you actually see. Leave a box blank to skip that item. '+
+      'Nothing changes until you press Apply, and every adjustment is recorded with your name against it.</div>'+
+      '<select class="mrow-in" style="margin-bottom:8px" onchange="showStockTake(this.value)">'+
+        cats.map(function(c){ return '<option value="'+esc(c)+'"'+(c===cat?' selected':'')+'>'+
+          (c?esc(c):'All categories')+'</option>'; }).join('')+'</select>'+
+      '<div style="max-height:300px;overflow-y:auto"><table class="mtbl"><thead><tr>'+
+        '<th>Item</th><th class="r">System</th><th class="r">Counted</th></tr></thead><tbody>'+
+        list.map(function(p){
+          var i=prods.indexOf(p);
+          return '<tr><td>'+esc(p.name)+'<div style="font-size:9px;color:var(--text3)">'+esc(p.cat||'')+'</div></td>'+
+            '<td class="r">'+p.stock+'</td>'+
+            '<td class="r"><input id="st-'+i+'" type="number" min="0" step="0.001" placeholder="\u2014" '+
+              'oninput="stockTakeVar()" style="width:62px" /></td></tr>';
+        }).join('')+'</tbody></table></div>'+
+      '<div id="stVarBox" style="font-size:11px;color:var(--text3);padding:8px 2px"></div>'+
+      '<label class="mlbl">Reason</label>'+
+      '<input class="mrow-in" id="stWhy" placeholder="e.g. monthly count, spoilage, spot check" style="margin-bottom:9px" />'+
+      '<div class="m2btn">'+
+        '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Cancel</button>'+
+        '<button onclick="applyStockTake()" style="background:#922b21;color:#fff;border:none">Apply adjustments</button>'+
+      '</div></div>');
+  };
+  function collectTake(){
+    var out=[];
+    prods.forEach(function(p,i){
+      var el=$('st-'+i); if(!el||el.value==='') return;
+      var c=parseFloat(el.value); if(isNaN(c)||c<0) return;
+      var d=r2(c-p.stock);
+      if(d!==0) out.push({idx:i, p:p, counted:r2(c), delta:d});
+    });
+    return out;
+  }
+  window.stockTakeVar=function(){
+    var t=collectTake(), box=$('stVarBox'); if(!box) return;
+    if(!t.length){ box.innerHTML='No differences entered yet.'; return; }
+    var val=r2(t.reduce(function(s,x){ return s+(x.p.cost||0)*x.delta; },0));
+    var short=t.filter(function(x){ return x.delta<0; }).length;
+    box.innerHTML='<b>'+t.length+'</b> item(s) differ \u00b7 <b>'+short+'</b> short \u00b7 value '+
+      '<b style="color:'+(val<0?'var(--red)':'var(--green)')+'">'+(val<0?'-':'')+peso(Math.abs(val))+'</b>';
+  };
+  window.applyStockTake=function(){
+    var t=collectTake();
+    if(!t.length){ toast('Nothing to adjust',1800,'#f1c40f'); return; }
+    var why=($('stWhy')||{}).value.trim()||'stock take';
+    requireMgr(function(){
+      t.forEach(function(x){
+        x.p.stock=x.counted;
+        if(typeof queueMove==='function') queueMove(x.p.bc, x.delta, 'recount', why);
+        logPrice({at:new Date().toISOString(), by:currentUser?currentUser.name:'\u2014',
+          name:x.p.name+' (stock take)', bc:x.p.bc, was:r2(x.counted-x.delta), now:x.counted,
+          pct:0, below:false, stock:true, why:why});
+      });
+      if(typeof syncFlush==='function') syncFlush();
+      saveAll(); closeModal();
+      try{ renderRaw(); renderTiles(); }catch(e){}
+      var val=r2(t.reduce(function(s,x){ return s+(x.p.cost||0)*x.delta; },0));
+      toast('\u2713 '+t.length+' item(s) adjusted \u00b7 '+(val<0?'shrinkage ':'gain ')+peso(Math.abs(val)),
+            5000, val<0?'#e74c3c':'#2ecc71');
+    });
+  };
+
+  /* ══════════════════════════════════════════
+     4c. STAFF PERFORMANCE + HOURLY CURVE
+  ══════════════════════════════════════════ */
+  window.showStaffReport=function(days){
+    days=days||7;
+    var since=Date.now()-days*86400000;
+    var by={};
+    txnHistory.forEach(function(t){
+      if(new Date(t.date).getTime()<since) return;
+      var n=t.cashier||'\u2014';
+      if(!by[n]) by[n]={n:0,amt:0,items:0,vd:0,ret:0,disc:0};
+      var g=by[n];
+      if(t.type==='void'){ g.vd++; return; }
+      if(t.type==='return'){ g.ret=r2(g.ret+t.total); return; }
+      if(t.voided){ g.vd++; return; }
+      g.n++; g.amt=r2(g.amt+(t.total||0));
+      g.items+=(t.items||[]).reduce(function(s,i){ return s+i.qty; },0);
+      g.disc=r2(g.disc+(t.disc||0)+(t.senDisc||0));
+    });
+    (shiftLogs||[]).forEach(function(s){
+      if(new Date(s.closedAt||s.openedAt).getTime()<since) return;
+      (s.segments||[]).forEach(function(g){
+        var n=g.holder||s.openedBy;
+        if(!by[n]) by[n]={n:0,amt:0,items:0,vd:0,ret:0,disc:0};
+        by[n].varr=r2((by[n].varr||0)+(g.variance||0));
+      });
+    });
+    var names=Object.keys(by);
+    if(!names.length){ toast('No sales in the last '+days+' days',2400,'#f1c40f'); return; }
+
+    openModal('<div class="mbox" style="width:390px">'+mHead('&#128101; Staff performance \u2014 '+days+' days')+
+      '<div class="mnote">Built from data the till already keeps: the account on every receipt and the '+
+      'over/short on every cash segment.</div>'+
+      '<table class="mtbl"><thead><tr><th>Account</th><th class="r">Sales</th><th class="r">Value</th>'+
+      '<th class="r">Basket</th><th class="r">Disc</th><th class="r">V/R</th><th class="r">Over/Short</th></tr></thead><tbody>'+
+      names.map(function(n){
+        var g=by[n], v=g.varr||0;
+        return '<tr><td>'+esc(n)+'</td><td class="r">'+g.n+'</td>'+
+          '<td class="r" style="color:var(--green)">'+peso(g.amt)+'</td>'+
+          '<td class="r">'+(g.n?peso(g.amt/g.n):'\u2014')+'</td>'+
+          '<td class="r" style="color:var(--orange)">'+(g.disc?peso(g.disc):'\u2014')+'</td>'+
+          '<td class="r">'+g.vd+' / '+(g.ret?peso(g.ret):'0')+'</td>'+
+          '<td class="r" style="color:'+(Math.abs(v)<0.01?'var(--green)':'var(--red)')+'">'+
+            (v<0?'-':'')+peso(Math.abs(v))+'</td></tr>';
+      }).join('')+'</tbody></table>'+
+      '<div style="font-size:10px;color:var(--text3);margin-top:8px;line-height:1.5">'+
+      'A consistently negative Over/Short is worth a conversation before it is worth an accusation \u2014 '+
+      'a cashier who is always short by a few pesos is usually miscounting change, not stealing.</div>'+
+      '<button class="mok" style="margin-top:9px" onclick="closeModal()">Close</button></div>');
+  };
+
+  window.showHourly=function(days){
+    days=days||7;
+    var since=Date.now()-days*86400000;
+    var h=new Array(24).fill(0), c=new Array(24).fill(0);
+    txnHistory.forEach(function(t){
+      if(t.type==='void'||t.type==='return'||t.voided) return;
+      var d=new Date(t.date); if(d.getTime()<since) return;
+      h[d.getHours()]=r2(h[d.getHours()]+(t.total||0));
+      c[d.getHours()]++;
+    });
+    var max=Math.max.apply(null,h)||1;
+    var live=h.map(function(v,i){ return {i:i,v:v,n:c[i]}; }).filter(function(x){ return x.n>0; });
+    if(!live.length){ toast('No sales in the last '+days+' days',2400,'#f1c40f'); return; }
+    openModal('<div class="mbox" style="width:360px">'+mHead('&#128337; Busiest hours \u2014 '+days+' days')+
+      '<div class="mnote">When the counter is actually busy. Use it to decide when a second person is worth it.</div>'+
+      live.map(function(x){
+        var pct=Math.round(x.v/max*100);
+        return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">'+
+          '<span style="font-size:10px;color:var(--text3);width:44px">'+
+            String(x.i).padStart(2,'0')+':00</span>'+
+          '<div style="flex:1;height:13px;background:var(--bg3);border-radius:3px;overflow:hidden">'+
+            '<div style="height:100%;width:'+pct+'%;background:'+(pct>70?'var(--green)':'var(--accent)')+'"></div></div>'+
+          '<span style="font-size:10px;color:var(--text2);width:78px;text-align:right">'+peso(x.v)+'</span>'+
+          '<span style="font-size:9px;color:var(--text3);width:34px;text-align:right">'+x.n+'</span></div>';
+      }).join('')+
+      '<button class="mok" style="margin-top:9px" onclick="closeModal()">Close</button></div>');
+  };
+
+  /* ══════════════════════════════════════════
+     5. DENOMINATION GRID
+     One box for ₱4,385 invites a transposition, and a transposition
+     looks exactly like theft on the report.
+  ══════════════════════════════════════════ */
+  var DENOMS=[1000,500,200,100,50,20,10,5,1];
+  window.denomPad=function(tid){
+    return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:7px;margin-bottom:8px">'+
+      '<div style="font-size:10px;color:var(--text3);margin-bottom:5px">Count by denomination \u2014 the total fills in for you</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px">'+
+      DENOMS.map(function(d){
+        return '<div style="display:flex;align-items:center;gap:4px">'+
+          '<span style="font-size:10px;color:var(--text4);width:34px;text-align:right">'+d+'</span>'+
+          '<input id="dn-'+tid+'-'+d+'" type="number" min="0" step="1" placeholder="0" '+
+            'oninput="denomSum(\''+tid+'\')" '+
+            'style="width:100%;height:24px;background:var(--bg1);border:1px solid var(--border);'+
+            'border-radius:2px;color:#fff;font-size:11px;padding:0 5px;outline:none" /></div>';
+      }).join('')+'</div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:6px">'+
+        '<span>Coins / loose</span>'+
+        '<input id="dn-'+tid+'-coin" type="number" min="0" step="0.01" placeholder="0.00" '+
+          'oninput="denomSum(\''+tid+'\')" style="width:80px;height:24px;background:var(--bg1);'+
+          'border:1px solid var(--border);border-radius:2px;color:#fff;font-size:11px;padding:0 5px;outline:none" />'+
+      '</div></div>'+
+      buildMNP(tid);
+  };
+  window.denomSum=function(tid){
+    var t=0;
+    DENOMS.forEach(function(d){
+      var el=$('dn-'+tid+'-'+d);
+      t+=d*(parseInt(el&&el.value,10)||0);
+    });
+    var c=$('dn-'+tid+'-coin');
+    t=r2(t+(parseFloat(c&&c.value)||0));
+    var target=$(tid);
+    if(target){
+      target.value=t.toFixed(2);
+      if(target.oninput) target.oninput();
+      ['csVar','zVariance','_cntVar'].forEach(function(fn){
+        try{ if(typeof window[fn]==='function') window[fn](); }catch(e){}
+      });
+    }
+  };
+
+  /* ══════════════════════════════════════════
+     6. OPEN / MISCELLANEOUS ITEM
+     Without one, a cashier rings something else of a similar price and
+     corrupts stock and the top-seller report at the same time.
+  ══════════════════════════════════════════ */
+  window.openItemModal=function(){
+    openModal('<div class="mbox">'+mHead('&#128290; Open item')+
+      '<div class="mnote">For something not in the catalogue yet. It sells and prints normally, but it '+
+      '<b>does not touch stock</b> and is marked as an open item on every report, so it cannot quietly '+
+      'corrupt your counts.</div>'+
+      '<label class="mlbl">Description (printed on the receipt)</label>'+
+      '<input class="mrow-in" id="oiName" placeholder="e.g. Load, plastic bag, one-off item" style="margin-bottom:8px" />'+
+      '<label class="mlbl">Price</label>'+
+      '<input class="minp" id="oiPrice" type="number" min="0" step="0.01" placeholder="0.00" />'+
+      '<label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);cursor:pointer;margin:6px 0 8px">'+
+        '<input type="checkbox" id="oiVx" style="width:14px;height:14px;cursor:pointer" /> VAT-exempt</label>'+
+      buildMNP('oiPrice')+
+      '<button class="mok" onclick="addOpenItem()">Add to sale</button></div>');
+  };
+  window.addOpenItem=function(){
+    var n=($('oiName')||{}).value.trim();
+    var p=parseFloat(($('oiPrice')||{}).value);
+    if(!n){ toast('Give it a description','1800','#e74c3c'); return; }
+    if(isNaN(p)||p<=0){ toast('Enter a price','1800','#e74c3c'); return; }
+    cart.push({bc:'OPEN-'+Date.now(), code:'OPEN', name:n, price:r2(p), cost:0, qty:1,
+               iDisc:0, iDiscType:'pct', vx:($('oiVx')||{}).checked||false, _open:true});
+    selRow=cart.length-1;
+    closeModal(); renderCart();
+    toast('Added '+n+' \u2014 open item, stock untouched',3000,'#f1c40f');
+  };
+
+  /* ══════════════════════════════════════════
+     WIRING
+  ══════════════════════════════════════════ */
+  function addBtn(bar, id, cls, html, fn){
+    if(!bar || $(id)) return;
+    var b=document.createElement('button');
+    b.id=id; b.type='button'; b.className=cls;
+    b.style.cssText='height:28px;padding:0 10px';
+    b.innerHTML=html; b.onclick=fn;
+    bar.appendChild(b);
+  }
+  function wire(){
+    var rep=document.querySelector('#panel-reports .tbar');
+    addBtn(rep,'btnBuy','btn btn-g','&#128722; Buying list',function(){ showBuyingList(14); });
+    addBtn(rep,'btnTake','btn btn-b','&#128203; Stock take',function(){ showStockTake(''); });
+    addBtn(rep,'btnStaff','btn btn-b','&#128101; Staff',function(){ showStaffReport(7); });
+    addBtn(rep,'btnHourly','btn btn-gy','&#128337; Hours',function(){ showHourly(7); });
+    addBtn(rep,'btnExc','btn btn-r','&#9888; Exceptions',function(){ showExceptionLog(); });
+    var sell=document.querySelector('#panel-sell .hdr .hcol:last-child .hrow:last-child');
+    if(sell && !$('btnOpenItem')){
+      var b=document.createElement('button');
+      b.id='btnOpenItem'; b.type='button'; b.className='btn btn-o';
+      b.innerHTML='&#128290; Open item'; b.onclick=function(){ openItemModal(); };
+      sell.appendChild(b);
+    }
+    updateHoldBadge();
+  }
+  var _ot=_openTab;
+  _openTab=function(t){ _ot.apply(this,arguments); try{ wire(); }catch(e){} };
+  try{ wire(); }catch(e){}
 
 })();
 
