@@ -776,7 +776,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1787619339693",sk="my_tindahan_build_stamp";
+  var stamp="1787621366992",sk="my_tindahan_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("my_tindahan_users");
     localStorage.removeItem("my_tindahan_store");
@@ -797,7 +797,7 @@ const LS = {
 };
 
 let USERS = (()=>{
-  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$dtmm7t1eb3zgqdwhsz8","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$c770ok1ix0x0p17m5oe9","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$13q5cnaywuold1ck824a","color":"#1a6e3a","mustChange":true}]);
+  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$10b7cdhf1epe8au11h5","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$2a67v34p52ipbv2kvp","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$1eekg7l1cdj7r4aouba9","color":"#1a6e3a","mustChange":true}]);
   return u;
 })();
 
@@ -1023,7 +1023,7 @@ function cardLabel(c){
    stops PINs sitting in localStorage as readable plain text.
    ════════════════════════════════════════ */
 const PIN_SALT='mystore.pos.v2';
-const PIN_SALT2='e2083b9f56ab97e51721f14ef35b66ee';
+const PIN_SALT2='8f23f610a0d563a8b534bc0aafe55d5d';
 function hashPin(pin){
   let h1=0x811c9dc5, h2=0x1000193;
   const str=PIN_SALT+':'+pin+':'+PIN_SALT;
@@ -2816,9 +2816,10 @@ function doZReset(){
     gross:f.gross, disc:f.disc, returns:f.retAmt, voids:f.voidAmt,
     net:r2(f.net-f.retAmt), vat:f.vat, vatable:f.vatable, vatEx:f.vatEx,
     profit:f.profit, pays:f.pays,
-    drawer:{float:shift?shift.float:0, cashSales:shift?shift.cashSales:0,
-            refunds:shift?shift.cashRefunds:0, expected, counted:r2(counted),
-            variance:r2(counted-expected)},
+    drawer:(typeof shiftDayDrawer==='function' ? shiftDayDrawer(counted)
+            : {float:shift?shift.float:0, cashSales:shift?shift.cashSales:0,
+               refunds:shift?shift.cashRefunds:0, expected, counted:r2(counted),
+               variance:r2(counted-expected)}),
     grandBefore:{...grandTotals}
   };
   grandTotals.sales=r2(grandTotals.sales+z.net);
@@ -3433,7 +3434,7 @@ function renderUserCards(){
         </div>
         <div>
           <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">New PIN (4 digits)</label>
-          <input id="upin-${idx}" type="password" maxlength="4" placeholder="Leave blank to keep"
+          <input id="upin-${idx}" type="password" maxlength="4" placeholder="unchanged"
             style="width:100%;height:28px;background:var(--bg1);border:1px solid var(--border);border-radius:2px;color:#fff;font-size:11px;padding:0 8px;outline:none;font-family:'Courier New',monospace;letter-spacing:4px" />
         </div>
         <div>
@@ -4364,14 +4365,39 @@ function openCreditCount(){
     if(o===c) return true;
     return (o<c) ? (n>=o && n<=c) : (n>=o || n<=c);
   }
-  /* Scheduled time out: closing time, or float+shiftLen when 24 hours. */
+  /* A cashier's own rostered hours, when the manager has set them. */
+  function userShift(u){
+    u = u || currentUser;
+    return (u && u.shiftStart && u.shiftEnd) ? {start:u.shiftStart, end:u.shiftEnd} : null;
+  }
+  function rosterLabel(u){
+    var r=userShift(u);
+    return r ? (fmtT(r.start)+" \u2013 "+fmtT(r.end)) : "";
+  }
+  /* Turn "14:00" into the next occurrence of that time after `from`. */
+  function atTime(from, hhmmStr){
+    var m=toMin(hhmmStr);
+    var e=new Date(from.getFullYear(),from.getMonth(),from.getDate(),Math.floor(m/60),m%60,0,0);
+    if(e.getTime()<=from.getTime()+60000) e=new Date(e.getTime()+86400000);
+    return e;
+  }
+  /* Scheduled time out: the cashier's own roster first, then the store
+     closing time, then float + default shift length when open 24 hours. */
   function plannedEnd(startISO){
     var s=new Date(startISO);
+    var r=userShift();
+    if(r) return atTime(s, r.end);
     if(STORE.open24) return new Date(s.getTime()+(parseFloat(STORE.shiftLen)||8)*3600000);
-    var c=toMin(STORE.closeTime);
-    var e=new Date(s.getFullYear(),s.getMonth(),s.getDate(),Math.floor(c/60),c%60,0,0);
-    if(e.getTime()<=s.getTime()+60000) e=new Date(e.getTime()+86400000);
-    return e;
+    return atTime(s, STORE.closeTime);
+  }
+  /* How far off her rostered start is she, in minutes? */
+  function rosterDrift(d){
+    var r=userShift(); if(!r) return null;
+    var n=d.getHours()*60+d.getMinutes(), st=toMin(r.start);
+    var diff=n-st;
+    if(diff>720)  diff-=1440;
+    if(diff<-720) diff+=1440;
+    return diff;
   }
 
   /* ══════════════════════════════════════════
@@ -4532,7 +4558,11 @@ function openCreditCount(){
       (sh.closedBy?line("Closed by", esc(sh.closedBy)):"")+
       dv+
       line("Store hours", esc(sh.storeHours||hoursLabel()))+
+      (sh.roster?line("Rostered", esc(sh.roster)):"")+
       line("Time in", hhmm(st))+
+      (sh.rosterDrift!=null && Math.abs(sh.rosterDrift)>=20
+        ? line("vs roster", (sh.rosterDrift<0?"-":"+")+durTxt(Math.abs(sh.rosterDrift)*60000))
+        : "")+
       line("Time out", (live?"(still open) ":"")+hhmm(out))+
       line("Scheduled out", hhmm(pe))+
       line("Gross hours", durTxt(grossMs))+
@@ -4568,15 +4598,38 @@ function openCreditCount(){
       line("Maya", peso(f.pays.maya.amt)+" ("+f.pays.maya.n+")")+
       line("Card", peso(f.pays.card.amt)+" ("+f.pays.card.n+")")+
       dv+
-      '<div style="font-size:10px;color:#888;margin-bottom:3px">Cash drawer</div>'+
-      line("Opening float", peso(sh.float||0))+
-      line("Cash sales", peso(sh.cashSales||0))+
-      line("Cash in", peso(dr.cin))+
-      line("Cash out / drops", "-"+peso(dr.cout))+
-      line("Cash refunds", "-"+peso(sh.cashRefunds||0))+
-      '<div class="birtot"><span>EXPECTED IN DRAWER</span><span>'+peso(dr.expected)+'</span></div>'+
-      (hasCnt ? line("Cash counted", peso(counted)) +
-                line("Over / (Short)", (vari<0?"-":"")+peso(Math.abs(vari))) : "")+
+      '<div style="font-size:10px;color:#888;margin-bottom:3px">Cash drawer \u2014 by holder</div>'+
+      (function(){
+        var d=drawerAll(sh, hasCnt?counted:null);
+        if(!d.segs.length){
+          return line("Opening float", peso(sh.float||0))+
+                 line("Cash sales", peso(sh.cashSales||0))+
+                 line("Cash in", peso(dr.cin))+
+                 line("Cash out / drops", "-"+peso(dr.cout))+
+                 line("Cash refunds", "-"+peso(sh.cashRefunds||0))+
+                 '<div class="birtot"><span>EXPECTED IN DRAWER</span><span>'+peso(dr.expected)+'</span></div>';
+        }
+        var body=d.segs.map(function(g,k){
+          return '<div style="margin:4px 0 2px;font-size:10px;font-weight:700">'+(k+1)+'. '+esc(g.holder)+
+                 ' &nbsp;'+hhmm(g.openedAt)+'\u2013'+(g.closedAt?hhmm(g.closedAt):'now')+
+                 (g.open?' <span style="color:#b00">(open)</span>':'')+'</div>'+
+                 line("&nbsp;&nbsp;Float in", peso(g.float))+
+                 line("&nbsp;&nbsp;Cash sales", peso(g.cashSales))+
+                 ((g.cin||g.cout)?line("&nbsp;&nbsp;Cash in / out", peso(g.cin||0)+" / -"+peso(g.cout||0)):"")+
+                 (g.cashRefunds?line("&nbsp;&nbsp;Refunds", "-"+peso(g.cashRefunds)):"")+
+                 line("&nbsp;&nbsp;Expected", peso(g.expected))+
+                 line("&nbsp;&nbsp;Counted out", peso(g.counted))+
+                 line("&nbsp;&nbsp;<b>Over / (Short)</b>",
+                      '<b>'+(g.variance<0?'-':'')+peso(Math.abs(g.variance))+'</b>');
+        }).join('');
+        return body+
+          '<div class="birdv"></div>'+
+          line("Total floats in", peso(d.tot.float))+
+          line("Total cash sales", peso(d.tot.cashSales))+
+          line("Total counted out", peso(d.tot.counted))+
+          '<div class="birtot"><span>SHIFT OVER / (SHORT)</span><span>'+
+            (d.tot.variance<0?'-':'')+peso(Math.abs(d.tot.variance))+'</span></div>';
+      })()+
       dv+
       '<div style="font-size:9px;margin-top:6px">Cashier signature: ______________________</div>'+
       '<div style="font-size:9px;margin-top:4px">Manager signature: ______________________</div>'+
@@ -4698,6 +4751,7 @@ function openCreditCount(){
     var pe=plannedEnd(now.toISOString());
     var peV=p2(pe.getHours())+":"+p2(pe.getMinutes());
     var outside=!withinHours(now);
+    var roster=rosterLabel(), drift=rosterDrift(now);
     openModal('<div class="mbox">'+mHead("&#128275; Open shift / time in")+
       '<div class="mnote">Count the cash you are putting in the drawer to start the shift. This becomes your opening float and is used to compute over/short when you time out.</div>'+
       (outside
@@ -4706,10 +4760,18 @@ function openCreditCount(){
         : '')+
       '<div class="minfobox">'+
         '<div class="mi-row">Cashier: <span>'+esc(currentUser?currentUser.name:"\u2014")+'</span></div>'+
+        '<div class="mi-row">Your roster: <span>'+(roster
+            ? esc(roster)
+            : '<span style="color:var(--text3)">not set \u2014 using store hours</span>')+'</span></div>'+
         '<div class="mi-row">Store hours: <span>'+esc(hoursLabel())+'</span></div>'+
         '<div class="mi-row">Time in: <span>'+hhmm(now)+'</span></div>'+
         '<div class="mi-row">Shift No.: <span>#'+counters.sh+'</span></div>'+
       '</div>'+
+      (drift!==null && Math.abs(drift)>=20
+        ? '<div class="mnote">&#8505; You are clocking in <b>'+durTxt(Math.abs(drift)*60000)+'</b> '+
+          (drift<0?'before':'after')+' your rostered start of <b>'+fmtT(userShift().start)+
+          '</b>. That is fine \u2014 it is simply noted on your shift report.</div>'
+        : '')+
       '<label class="mlbl">Opening float (cash in drawer)</label>'+
       '<input class="minp" id="shFloat" type="number" min="0" step="0.01" value="0.00" />'+
       '<label class="mlbl">Expected time out</label>'+
@@ -4735,9 +4797,13 @@ function openCreditCount(){
       plannedEnd:pe.toISOString(),
       shiftNo:counters.sh,
       storeHours:hoursLabel(),
+      roster:rosterLabel()||null,
+      rosterDrift:rosterDrift(now),
       outsideHours:!withinHours(now),
-      float:r2(f), cashSales:0, cashRefunds:0, moves:[], breaks:[], beginOR:counters.inv
+      float:r2(f), cashSales:0, cashRefunds:0, moves:[], breaks:[], segments:[],
+      beginOR:counters.inv
     };
+    openSegment(currentUser, f);
     saveAll(); closeModal(); renderShiftBar();
     toast("Shift #"+shift.shiftNo+" opened \u2014 "+peso(f)+" float \u00b7 time out "+hhmm(pe));
   };
@@ -4759,6 +4825,7 @@ function openCreditCount(){
           ' net &middot; '+durTxt(Date.now()-st.getTime())+' gross</span></div>'+
         '<div class="mi-row">Breaks: <span>'+breaksOf(shift).length+' &middot; '+durTxt(breakMs(shift))+'</span></div>'+
         '<div class="mi-row">Store hours: <span>'+esc(shift.storeHours||hoursLabel())+'</span></div>'+
+        (shift.roster?'<div class="mi-row">Rostered: <span>'+esc(shift.roster)+'</span></div>':'')+
         '<div class="mi-row">Receipts: <span>'+f.count+' sale(s) &middot; '+f.rets.length+' return(s) &middot; '+f.voids.length+' void(s)</span></div>'+
         '<div class="mi-row">OR range: <span>'+esc(f.beginOR)+' \u2192 '+esc(f.endOR)+'</span></div>'+
       '</div>'+
@@ -4797,6 +4864,13 @@ function openCreditCount(){
       ob.orAtEnd=counters.inv;
       ob.closedWithShift=true;
     }
+    /* Close the segment still open, then reconcile across every segment:
+       the shift is over or short by the SUM of its holders, not by the
+       last count alone. */
+    if(!shift.awaitFloat) closeSegment(counted,'end of shift');
+    var totals=drawerAll(shift);
+    expected=totals.tot.expected;
+    variance=totals.tot.variance;
     var snap=JSON.parse(JSON.stringify(shift));
 
     requireMgr(function(){
@@ -4817,7 +4891,8 @@ function openCreditCount(){
         storeHours:snap.storeHours||hoursLabel(),
         outsideHours:!!snap.outsideHours,
         float:snap.float, cashSales:snap.cashSales||0, cashRefunds:snap.cashRefunds||0,
-        moves:snap.moves||[], expected:expected, counted:counted, variance:variance,
+        moves:snap.moves||[], expected:expected, counted:totals.tot.counted, variance:variance,
+        segments:segList(snap), cashSegments:segList(snap).length,
         beginOR:f.beginOR, endOR:f.endOR,
         txns:f.count, returns:f.rets.length, voids:f.voids.length,
         net:r2(f.net-f.retAmt),
@@ -4852,83 +4927,48 @@ function openCreditCount(){
     });
   };
 
-  /* ── break out: log out and let the reliever log in as herself ── */
+  /* ── break out: count the drawer, take the cash, log out ── */
   window.breakModal=function(){
     if(!shiftOpen()){ toast("No shift is open",1500,"#f1c40f"); return; }
     if(onBreak()){ resumeModal(); return; }
-    var others=USERS.filter(function(u){ return !currentUser || u.id!==currentUser.id; });
-    openModal('<div class="mbox">'+mHead("&#9749; Break \u2014 hand over the till")+
-      '<div class="mnote">The shift stays <b>open</b>. Float, drawer and the OR series carry on unchanged &mdash; '+
-      'only the name against each receipt changes until you come back. Nothing is counted here.</div>'+
-      '<div class="minfobox">'+
-        '<div class="mi-row">Going on break: <span>'+esc(currentUser?currentUser.name:"\u2014")+'</span></div>'+
-        '<div class="mi-row">Time out: <span>'+hhmm(new Date())+'</span></div>'+
-        '<div class="mi-row">Drawer stays at: <span>'+peso(expectedDrawer())+'</span></div>'+
-      '</div>'+
-      '<button class="mok" onclick="breakAndLogout()">&#9749; Start break &amp; log out</button>'+
-      '<div style="font-size:10px;color:var(--text3);line-height:1.55;margin:8px 2px 0">'+
-        'You go back to the login screen. Whoever covers for you <b style="color:var(--text2)">logs in with her own '+
-        'account and PIN</b> and is recorded as the reliever. When <b style="color:var(--text2)">you log back in, your '+
-        'break ends by itself</b> and the shift carries on.</div>'+
-      '<hr class="sdivider" />'+
-      '<div style="font-size:10px;color:var(--text3);margin-bottom:6px">Or hand it straight over without going back to the login screen:</div>'+
-      (others.length
-        ? '<select id="brWho" class="mrow-in" style="margin-bottom:8px">'+
-            others.map(function(u){ return '<option value="'+u.id+'">'+esc(u.name)+' \u2014 '+esc(u.role)+'</option>'; }).join("")+
-          '</select>'+
-          '<input class="minp" id="brPin" type="password" maxlength="4" placeholder="reliever PIN" style="letter-spacing:6px;text-align:center" />'+
-          buildMNP("brPin")+
-          '<div id="brErr" style="font-size:11px;color:var(--red);text-align:center;min-height:14px;margin-bottom:4px"></div>'+
-          '<button onclick="doStartBreak()" style="width:100%;height:28px;background:var(--bg2);color:var(--text4);border:1px solid var(--border);border-radius:3px;font-size:11px;cursor:pointer">Endorse directly</button>'
-        : '<div style="font-size:10px;color:var(--text3)">No other staff account exists yet.</div>')+
-      '</div>');
-  };
-
-  /* Primary path: mark the break, then drop to the login screen. */
-  window.breakAndLogout=function(){
-    if(!shiftOpen()||onBreak()) return;
-    var now=new Date();
-    breaksOf(shift).push({
-      start:now.toISOString(), end:null,
-      cashier:currentUser?currentUser.name:"\u2014",
-      cashierId:currentUser?currentUser.id:null,
-      reliever:null, relieverId:null, relievers:[],
-      viaLogin:true, orAtStart:counters.inv
+    if(shift.awaitFloat){ toast("Put your opening float in first",2000,"#f1c40f"); return; }
+    var exp=expectedDrawer();
+    countModal({
+      title:"&#9749; Break \u2014 count and pull out",
+      note:"Count everything in the drawer and take it with you. The reliever puts in a float of her own, "+
+           "so her cash never mixes with yours and any shortage stays with whoever held the drawer.<br><br>"+
+           "The <b>shift itself stays open</b> \u2014 hours, receipts and the OR series carry on.",
+      holder:(shift.segHolder||shift.openedBy),
+      expected:exp,
+      cta:"&#9749; Pull out cash &amp; start break",
+      onOk:function(counted){
+        var now=new Date();
+        var rec=closeSegment(counted,"break pull-out");
+        breaksOf(shift).push({
+          start:now.toISOString(), end:null,
+          cashier:currentUser?currentUser.name:"\u2014",
+          cashierId:currentUser?currentUser.id:null,
+          reliever:null, relieverId:null, relievers:[],
+          viaLogin:true, orAtStart:counters.inv, pulledOut:rec.counted
+        });
+        saveAll(); renderShiftBar();
+        printHtml(pulloutHtml(rec, shift));
+        toast("Pulled out "+peso(rec.counted)+
+              (Math.abs(rec.variance)<0.01?" \u2014 balanced":(rec.variance<0?" \u2014 short ":" \u2014 over ")+peso(Math.abs(rec.variance)))+
+              ". Shift stays open.",5000, Math.abs(rec.variance)<0.01?"#2ecc71":"#e74c3c");
+        doLogout();
+      }
     });
-    saveAll(); closeModal(); renderShiftBar();
-    toast("Break started at "+hhmm(now)+" \u2014 the shift stays open. Log back in to resume.",4200,"#f1c40f");
-    doLogout();
-  };
-
-  window.doStartBreak=function(){
-    if(!shiftOpen()||onBreak()) return;
-    var sel=$("brWho"); if(!sel) return;
-    var who=USERS.find(function(u){ return String(u.id)===String(sel.value); });
-    var pin=($("brPin")||{}).value||"";
-    var err=$("brErr");
-    if(!who){ if(err) err.textContent="Select a reliever"; return; }
-    if(!pinMatches(who,pin)){
-      if(err) err.textContent="Wrong PIN for "+who.name;
-      if($("brPin")) $("brPin").value="";
-      return;
-    }
-    var now=new Date();
-    breaksOf(shift).push({
-      start:now.toISOString(), end:null,
-      cashier:currentUser?currentUser.name:"\u2014",
-      cashierId:currentUser?currentUser.id:null,
-      reliever:who.name, relieverId:who.id,
-      orAtStart:counters.inv
-    });
-    setActiveUser(who);
-    saveAll(); closeModal(); renderShiftBar();
-    toast("Till endorsed to "+who.name+" at "+hhmm(now)+" \u2014 shift still open",3200,"#f1c40f");
   };
 
   /* ── break in: the cashier takes the till back ── */
   window.resumeModal=function(){
     var b=curBreak();
     if(!b){ toast("Nobody is on break",1500,"#f1c40f"); return; }
+    if(currentUser && b.cashierId!=null && String(currentUser.id)!==String(b.cashierId)){
+      /* The reliever is handing back: count her own cash out first. */
+      handBackModal(b); return;
+    }
     var orig=USERS.find(function(u){ return String(u.id)===String(b.cashierId); });
     var rung=shiftTxns(shift).filter(function(t){
       var ts=new Date(t.date).getTime();
@@ -4988,6 +5028,45 @@ function openCreditCount(){
     });
   };
 
+
+  /* The reliever counts her own cash out before handing the drawer back. */
+  window.handBackModal=function(b){
+    b=b||curBreak(); if(!b) return;
+    if(shift.awaitFloat){ toast("Drawer is already empty \u2014 nothing to count out",2200,"#f1c40f"); return; }
+    countModal({
+      title:"&#8617; Hand the drawer back",
+      note:"Count <b>your own</b> cash and take it out. "+esc(b.cashier)+" then puts in a fresh float when she "+
+           "logs back in, so the two of you are never short for each other.",
+      holder:(shift.segHolder||"\u2014"),
+      expected:expectedDrawer(),
+      cta:"&#8617; Pull out my cash",
+      onOk:function(counted){
+        var rec=closeSegment(counted,"reliever hand-back");
+        saveAll(); closeModal(); renderShiftBar();
+        printHtml(pulloutHtml(rec, shift));
+        toast("You pulled out "+peso(rec.counted)+
+          (Math.abs(rec.variance)<0.01?" \u2014 balanced":(rec.variance<0?" \u2014 short ":" \u2014 over ")+peso(Math.abs(rec.variance))),
+          5000, Math.abs(rec.variance)<0.01?"#2ecc71":"#e74c3c");
+        setTimeout(function(){ doLogout(); },900);
+      }
+    });
+  };
+
+  /* Nothing can be sold out of an empty drawer. */
+  if(typeof checkout==='function'){
+    var _coSeg=checkout;
+    checkout=function(){
+      if(shiftOpen() && shift.awaitFloat){
+        floatModal(currentUser,
+          "The drawer is empty \u2014 the last person took their cash with them. Put your own float in before selling.",
+          function(v){ openSegment(currentUser,v); saveAll(); renderShiftBar();
+            toast("Float "+peso(v)+" in \u2014 this cash is yours until you count it out",4000); });
+        return;
+      }
+      return _coSeg.apply(this,arguments);
+    };
+  }
+
   /* ══════════════════════════════════════════
      LOGIN IS THE HANDOVER
      Nobody types a PIN into someone else's session. The reliever logs
@@ -4998,14 +5077,42 @@ function openCreditCount(){
     if(!u || !shiftOpen()) return;
     var b=curBreak(); if(!b) return;
 
-    /* The cashier is back — end the break, no extra taps. */
+    /* The cashier is back. If the reliever left cash in the drawer it must
+       be counted out to her name first, then the cashier puts in a fresh
+       float of her own. */
     if(b.cashierId!=null && String(b.cashierId)===String(u.id)){
-      var now=new Date();
-      b.end=now.toISOString();
-      b.minutes=Math.round((now-new Date(b.start))/60000);
-      b.orAtEnd=counters.inv;
-      saveAll(); renderShiftBar();
-      toast("Welcome back \u2014 break of "+durTxt(b.minutes*60000)+" ended, shift resumed",3600);
+      var endBreak=function(){
+        var now=new Date();
+        b.end=now.toISOString();
+        b.minutes=Math.round((now-new Date(b.start))/60000);
+        b.orAtEnd=counters.inv;
+        saveAll(); renderShiftBar();
+        toast("Welcome back \u2014 break of "+durTxt(b.minutes*60000)+" ended, shift resumed",3600);
+      };
+      var newFloat=function(){
+        setTimeout(function(){
+          floatModal(u,"Your break is over and the drawer is empty. Put in a fresh float \u2014 "+
+            "from here the cash is yours again until you count it out.",
+            function(v){ openSegment(u,v); endBreak();
+              toast("Float "+peso(v)+" in \u2014 shift resumed",4000); });
+        },600);
+      };
+      if(!shift.awaitFloat && shift.segHolderId!=null && String(shift.segHolderId)!==String(u.id)){
+        /* Reliever walked off without counting out — do it now, in her name. */
+        setTimeout(function(){
+          countModal({
+            title:"&#9888; Count out "+esc(shift.segHolder||"the reliever")+"&#8217;s cash",
+            note:"<b>"+esc(shift.segHolder||"The reliever")+"</b> did not count out before leaving. "+
+                 "Count what is in the drawer now \u2014 it is recorded against "+
+                 esc(shift.segHolder||"her")+", not you.",
+            holder:(shift.segHolder||"\u2014"),
+            expected:expectedDrawer(),
+            cta:"Record and clear the drawer",
+            onOk:function(c){ var rec=closeSegment(c,"counted out on return"); saveAll();
+              printHtml(pulloutHtml(rec, shift)); newFloat(); }
+          });
+        },600);
+      } else newFloat();
       return;
     }
 
@@ -5013,19 +5120,35 @@ function openCreditCount(){
     b.reliever=u.name; b.relieverId=u.id;
     b.relievers=(b.relievers||[]).concat([{name:u.name,id:u.id,at:new Date().toISOString()}]);
     saveAll(); renderShiftBar();
+    /* One modal at a time. Opening the float prompt and this notice
+       together meant the second wiped the first off the screen and the
+       reliever was never actually asked for her float. Chain them. */
+    var needFloat=!!shift.awaitFloat;
+    window.coverAck=function(){
+      closeModal();
+      if(!needFloat){ focusScan(); return; }
+      floatModal(u,"<b>"+esc(b.cashier)+"</b> took her cash with her, so the drawer is empty. Put in "+
+        "<b>your own</b> float \u2014 from here what is in the drawer is counted against you alone.",
+        function(v){ openSegment(u,v); saveAll(); renderShiftBar();
+          toast("Float "+peso(v)+" in \u2014 your cash, your count",4000); });
+    };
     openModal('<div class="mbox">'+mHead("&#9749; You are covering a break")+
       '<div class="mwarn">This till belongs to <b>'+esc(b.cashier)+'</b>&#8217;s open shift, not to a new one. '+
       'Anything you ring is recorded on <b>her</b> shift and <b>her</b> drawer.</div>'+
       '<div class="minfobox">'+
         '<div class="mi-row">Shift of: <span>'+esc(b.cashier)+'</span></div>'+
         '<div class="mi-row">On break since: <span>'+hhmm(b.start)+'</span></div>'+
-        '<div class="mi-row">Cash in drawer: <span>'+peso(expectedDrawer())+'</span></div>'+
+        '<div class="mi-row">Cash in drawer: <span>'+(shift.awaitFloat
+            ? '<span style="color:var(--orange)">empty \u2014 she took it with her</span>'
+            : peso(expectedDrawer()))+'</span></div>'+
         '<div class="mi-row">Next OR: <span>INV-'+pad4(counters.inv)+'</span></div>'+
       '</div>'+
       '<div class="mnote">Your name is printed against every receipt you issue, and the shift report shows exactly '+
-      'which of you held the till. When '+esc(b.cashier)+' logs back in, her break ends automatically. '+
+      'which of you held the till. The <b>cash is counted separately</b>: you put in your own float and count it '+
+      'out again when she returns, so neither of you can be short for the other. '+
       'Do <b>not</b> close the shift &mdash; that is hers to close.</div>'+
-      '<button class="mok" onclick="closeModal();focusScan()">Understood \u2014 start selling</button></div>');
+      '<button class="mok" onclick="coverAck()">'+
+        (shift.awaitFloat?'Understood \u2014 put in my float':'Understood \u2014 start selling')+'</button></div>');
   }
 
   if(typeof doLogin==="function"){
@@ -5182,6 +5305,190 @@ function openCreditCount(){
 
   /* An in-flight shift from an older build has no breaks array. */
   try{ if(shift) breaksOf(shift); }catch(e){}
+
+
+  /* ══════════════════════════════════════════
+     CASH SEGMENTS
+     A break is now a real cash handover: the cashier counts the drawer,
+     takes her money with her, and the reliever puts in a float of her
+     own. The shift, the hours and the OR series carry straight on — but
+     the CASH inside it splits into segments, each with one holder, one
+     float, one count and its own over/short. A shortage therefore
+     belongs to whoever actually held the drawer, not vaguely to the day.
+  ══════════════════════════════════════════ */
+  function segList(sh){ if(sh && !sh.segments) sh.segments=[]; return (sh&&sh.segments)||[]; }
+  function movesSum(mv,kind){
+    return r2((mv||[]).filter(function(m){ return m.type===kind; })
+                      .reduce(function(s,m){ return s+m.amt; },0));
+  }
+  function closeSegment(counted, why){
+    if(!shift) return null;
+    var exp=expectedDrawer();
+    var rec={
+      holder:   shift.segHolder   || shift.openedBy,
+      holderId: shift.segHolderId || null,
+      openedAt: shift.segOpenedAt || shift.openedAt,
+      closedAt: new Date().toISOString(),
+      float:r2(shift.float||0), cashSales:r2(shift.cashSales||0), cashRefunds:r2(shift.cashRefunds||0),
+      cin:movesSum(shift.moves,'in'), cout:movesSum(shift.moves,'out'),
+      expected:exp, counted:r2(counted), variance:r2(counted-exp), why:why||''
+    };
+    segList(shift).push(rec);
+    /* Drawer is now physically empty. */
+    shift.float=0; shift.cashSales=0; shift.cashRefunds=0; shift.moves=[];
+    shift.segHolder=null; shift.segHolderId=null; shift.segOpenedAt=null;
+    shift.awaitFloat=true;
+    return rec;
+  }
+  function openSegment(u, amt){
+    if(!shift) return;
+    shift.float=r2(amt||0); shift.cashSales=0; shift.cashRefunds=0; shift.moves=[];
+    shift.segHolder=u?u.name:'\u2014'; shift.segHolderId=u?u.id:null;
+    shift.segOpenedAt=new Date().toISOString(); shift.awaitFloat=false;
+  }
+  /* Everything banked across the whole shift, including the segment still open. */
+  function drawerAll(sh, currentCounted){
+    var segs=segList(sh).slice();
+    if(currentCounted!==undefined && currentCounted!==null && !sh.awaitFloat){
+      var exp=(function(){
+        var mv=(sh.moves||[]).reduce(function(s,m){ return s+(m.type==='in'?m.amt:-m.amt); },0);
+        return r2((sh.float||0)+(sh.cashSales||0)-(sh.cashRefunds||0)+mv);
+      })();
+      segs.push({holder:sh.segHolder||sh.openedBy, openedAt:sh.segOpenedAt||sh.openedAt,
+        closedAt:new Date().toISOString(), float:r2(sh.float||0), cashSales:r2(sh.cashSales||0),
+        cashRefunds:r2(sh.cashRefunds||0), cin:movesSum(sh.moves,'in'), cout:movesSum(sh.moves,'out'),
+        expected:exp, counted:r2(currentCounted), variance:r2(currentCounted-exp), open:true});
+    }
+    var t={float:0,cashSales:0,cashRefunds:0,cin:0,cout:0,expected:0,counted:0,variance:0};
+    segs.forEach(function(s){
+      t.float=r2(t.float+s.float); t.cashSales=r2(t.cashSales+s.cashSales);
+      t.cashRefunds=r2(t.cashRefunds+s.cashRefunds);
+      t.cin=r2(t.cin+(s.cin||0)); t.cout=r2(t.cout+(s.cout||0));
+      t.expected=r2(t.expected+s.expected); t.counted=r2(t.counted+s.counted);
+      t.variance=r2(t.variance+s.variance);
+    });
+    return {segs:segs, tot:t};
+  }
+  window.shiftDayDrawer=function(counted){
+    if(!shift) return {float:0,cashSales:0,refunds:0,expected:0,counted:r2(counted||0),variance:0};
+    var d=drawerAll(shift, counted);
+    return {float:d.tot.float, cashSales:d.tot.cashSales, refunds:d.tot.cashRefunds,
+            expected:d.tot.expected, counted:d.tot.counted, variance:d.tot.variance,
+            segments:d.segs.length};
+  };
+
+  /* ── shared numeric-count modal ── */
+  function countModal(opts){
+    /* opts: title, note, holder, expected, cta, onOk(counted) */
+    window._cntOk=function(){
+      var v=parseFloat(($('cntVal')||{}).value);
+      if(isNaN(v)||v<0){ var e=$('cntErr'); if(e) e.textContent='Enter the amount counted'; return; }
+      closeModal(); opts.onOk(r2(v));
+    };
+    window._cntVar=function(){
+      var v=parseFloat(($('cntVal')||{}).value)||0, d=r2(v-opts.expected), el=$('cntVarTxt');
+      if(!el) return;
+      el.textContent=(d<0?'-':'')+peso(Math.abs(d));
+      el.style.color=Math.abs(d)<0.01?'var(--green)':(d<0?'var(--red)':'var(--yellow)');
+    };
+    openModal('<div class="mbox">'+
+      '<div class="mhead"><span class="mtitle">'+opts.title+'</span></div>'+
+      '<div class="mnote">'+opts.note+'</div>'+
+      '<div class="minfobox">'+
+        '<div class="mi-row">Drawer held by: <span>'+esc(opts.holder)+'</span></div>'+
+        '<div class="mi-row">Expected in drawer: <span>'+peso(opts.expected)+'</span></div>'+
+      '</div>'+
+      '<label class="mlbl">Cash counted and taken out</label>'+
+      '<input class="minp" id="cntVal" type="number" min="0" step="0.01" placeholder="0.00" oninput="_cntVar()" />'+
+      '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;padding:4px 2px 8px">'+
+        '<span style="color:var(--text3)">Over / (Short)</span>'+
+        '<span id="cntVarTxt" style="color:var(--yellow);font-family:\'Courier New\',monospace">&#8369;0.00</span></div>'+
+      buildMNP('cntVal')+
+      '<div id="cntErr" style="font-size:11px;color:var(--red);text-align:center;min-height:14px"></div>'+
+      '<button class="mok" onclick="_cntOk()">'+opts.cta+'</button></div>');
+  }
+
+  /* ── shared float-in modal ── */
+  function floatModal(u, note, onOk){
+    window._fltOk=function(){
+      var v=parseFloat(($('fltVal')||{}).value);
+      if(isNaN(v)||v<0){ var e=$('fltErr'); if(e) e.textContent='Enter your opening float'; return; }
+      closeModal(); onOk(r2(v));
+    };
+    openModal('<div class="mbox">'+
+      '<div class="mhead"><span class="mtitle">&#128176; Your opening float</span></div>'+
+      '<div class="mnote">'+note+'</div>'+
+      '<div class="minfobox"><div class="mi-row">Taking the drawer: <span>'+esc(u?u.name:'\u2014')+'</span></div>'+
+        '<div class="mi-row">Drawer is now: <span>empty</span></div></div>'+
+      '<label class="mlbl">Cash you are putting in</label>'+
+      '<input class="minp" id="fltVal" type="number" min="0" step="0.01" value="0.00" />'+
+      buildMNP('fltVal')+
+      '<div id="fltErr" style="font-size:11px;color:var(--red);text-align:center;min-height:14px"></div>'+
+      '<button class="mok" onclick="_fltOk()">&#10003; Start with this float</button></div>');
+  }
+
+  /* ── pull-out slip, so she leaves with paper ── */
+  function pulloutHtml(rec, sh){
+    var line=function(l,v){ return '<div class="birr"><span>'+l+'</span><span>'+v+'</span></div>'; };
+    return '<div class="bir">'+
+      '<div class="birt">'+esc(STORE.name)+'</div>'+
+      '<div class="birc" style="font-size:10px">'+esc(STORE.addr)+'</div>'+
+      '<div class="birdv"></div>'+
+      '<div class="birc" style="font-weight:700;font-size:11px">CASH PULL-OUT / REMITTANCE</div>'+
+      '<div class="birc" style="font-size:9px;color:#666">Not a sales document</div>'+
+      '<div class="birdv"></div>'+
+      line('Shift No.','#'+(sh.shiftNo||'\u2014'))+
+      line('Business date',esc(bizDate))+
+      line('Terminal',esc(STORE.till||'TILL-01'))+
+      line('Drawer held by',esc(rec.holder))+
+      line('From',hhmm(rec.openedAt))+
+      line('To',hhmm(rec.closedAt))+
+      '<div class="birdv"></div>'+
+      line('Opening float',peso(rec.float))+
+      line('Cash sales',peso(rec.cashSales))+
+      line('Cash in',peso(rec.cin))+
+      line('Cash out / drops','-'+peso(rec.cout))+
+      line('Cash refunds','-'+peso(rec.cashRefunds))+
+      '<div class="birtot"><span>EXPECTED</span><span>'+peso(rec.expected)+'</span></div>'+
+      line('Counted &amp; taken out',peso(rec.counted))+
+      '<div class="birtot"><span>OVER / (SHORT)</span><span>'+
+        (rec.variance<0?'-':'')+peso(Math.abs(rec.variance))+'</span></div>'+
+      '<div class="birdv"></div>'+
+      '<div style="font-size:9px;margin-top:6px">Handed over by: ______________________</div>'+
+      '<div style="font-size:9px;margin-top:4px">Received by: __________________________</div>'+
+    '</div>';
+  }
+  window.printPullout=function(k){
+    var segs=segList(shift); var rec=(k===undefined)?segs[segs.length-1]:segs[k];
+    if(rec) printHtml(pulloutHtml(rec, shift));
+  };
+
+
+  /* X and Z read the drawer for the whole shift, not just the segment
+     that happens to be open. */
+  if(typeof drawerRows==='function'){
+    drawerRows=function(){
+      if(!shiftOpen()) return '<div class="mwarn">No shift is open, so drawer figures are unavailable.</div>';
+      var line=function(l,v,c){ return '<div style="display:flex;justify-content:space-between;font-size:11px;color:'+
+        (c||'var(--text2)')+';padding:2px 0"><span>'+l+'</span><span style="font-family:\'Courier New\',monospace">'+v+'</span></div>'; };
+      var d=drawerAll(shift);
+      var out=d.segs.map(function(g,k){
+        return line((k+1)+'. '+esc(g.holder)+' '+hhmm(g.openedAt)+'\u2013'+hhmm(g.closedAt),
+          peso(g.counted)+' ('+(g.variance<0?'-':'')+peso(Math.abs(g.variance))+')',
+          Math.abs(g.variance)<0.01?'var(--green)':'var(--red)');
+      }).join('');
+      out+=line('Now: '+esc(shift.segHolder||'\u2014')+(shift.awaitFloat?' (drawer empty)':''),
+                peso(expectedDrawer()),'var(--yellow)');
+      out+='<div style="border-top:1px solid var(--border);margin:5px 0"></div>';
+      out+=line('Floats in today',peso(r2(d.tot.float+(shift.float||0))));
+      out+=line('Counted out so far',peso(d.tot.counted));
+      out+=line('EXPECTED IN DRAWER NOW','<b>'+peso(expectedDrawer())+'</b>','var(--yellow)');
+      if(d.segs.length) out+=line('Over / (Short) so far',
+        (d.tot.variance<0?'-':'')+peso(Math.abs(d.tot.variance)),
+        Math.abs(d.tot.variance)<0.01?'var(--green)':'var(--red)');
+      return out;
+    };
+  }
 
   /* ── first paint ── */
   try{ pruneShiftLogs(); }catch(e){}
@@ -5800,6 +6107,118 @@ function openCreditCount(){
       m.innerHTML+='<div style="margin-top:6px;line-height:1.55">'+line+'</div>';
     };
   }
+})();
+
+/* ══════════════════════════════════════════════════════════════════
+   v16 — PER-CASHIER ROSTERED HOURS + READABLE PRODUCT NAMES
+════════════════════════════════════════════════════════════════════ */
+(function(){
+
+  /* ── Shift start / end on every staff card ── */
+  var IN_CSS='width:100%;height:28px;background:var(--bg1);border:1px solid var(--border);'+
+             'border-radius:2px;color:#fff;font-size:11px;padding:0 6px;outline:none';
+  var LB_CSS='font-size:10px;color:var(--text3);display:block;margin-bottom:3px';
+
+  function shiftLenLabel(a,b){
+    if(!a||!b) return '\u2014';
+    var t=function(v){ var p=String(v).split(':'); return (parseInt(p[0],10)||0)*60+(parseInt(p[1],10)||0); };
+    var d=t(b)-t(a); if(d<=0) d+=1440;
+    return Math.floor(d/60)+'h '+String(d%60).padStart(2,'0')+'m';
+  }
+  window.updateRosterLen=function(idx){
+    var a=$('ushift-a-'+idx), b=$('ushift-b-'+idx), out=$('ushift-len-'+idx);
+    if(out) out.textContent=shiftLenLabel(a&&a.value, b&&b.value);
+  };
+
+  if(typeof renderUserCards==='function'){
+    var _ruc=renderUserCards;
+    renderUserCards=function(){
+      _ruc.apply(this,arguments);
+      var list=$('userCardsList'); if(!list) return;
+      Array.prototype.forEach.call(list.children||[], function(card, idx){
+        var u=USERS[idx]; if(!u) return;
+        if($('ushift-a-'+idx)) return;
+        var grid=card.querySelector && card.querySelector('div[style*="grid-template-columns"]');
+        if(!grid) return;
+        var wrap=document.createElement('div');
+        wrap.style.cssText='grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;'+
+          'border-top:1px solid var(--border);padding-top:8px;margin-top:2px';
+        wrap.innerHTML=
+          '<div><label style="'+LB_CSS+'">&#128336; Shift starts</label>'+
+            '<input type="time" id="ushift-a-'+idx+'" value="'+(u.shiftStart||'')+'" '+
+            'oninput="updateRosterLen('+idx+')" style="'+IN_CSS+'" /></div>'+
+          '<div><label style="'+LB_CSS+'">Shift ends</label>'+
+            '<input type="time" id="ushift-b-'+idx+'" value="'+(u.shiftEnd||'')+'" '+
+            'oninput="updateRosterLen('+idx+')" style="'+IN_CSS+'" /></div>'+
+          '<div><label style="'+LB_CSS+'">Length</label>'+
+            '<div id="ushift-len-'+idx+'" style="height:28px;display:flex;align-items:center;'+
+            'font-size:11px;color:var(--text4);font-family:\'Courier New\',monospace">'+
+            shiftLenLabel(u.shiftStart,u.shiftEnd)+'</div></div>'+
+          '<div style="grid-column:1/-1;font-size:10px;color:var(--text3);line-height:1.5">'+
+            'Used to pre-fill this cashier&#8217;s expected time out when she opens a shift, and printed on '+
+            'her shift report. Leave blank to fall back to the store hours. Overnight is fine '+
+            '(e.g. 10:00 PM &rarr; 6:00 AM).</div>';
+        grid.parentNode.insertBefore(wrap, grid.nextSibling);
+      });
+    };
+  }
+
+  /* Persist the roster alongside the rest of the card. */
+  if(typeof saveUserCard==='function'){
+    var _suc2=saveUserCard;
+    saveUserCard=function(idx){
+      var a=$('ushift-a-'+idx), b=$('ushift-b-'+idx);
+      if(USERS[idx] && (a||b)){
+        var av=a?a.value:'', bv=b?b.value:'';
+        if(av && bv){ USERS[idx].shiftStart=av; USERS[idx].shiftEnd=bv; }
+        else { delete USERS[idx].shiftStart; delete USERS[idx].shiftEnd; }
+      }
+      _suc2.apply(this,arguments);
+      try{ saveNow(); }catch(e){}
+      try{ renderShiftBar(); }catch(e){}
+    };
+  }
+
+  /* ══════════════════════════════════════════
+     PRODUCT NAMES WERE BEING SLICED
+     .tile-nm sets overflow:hidden, which drops a flex item's automatic
+     minimum size to zero. So when a tile could not fit its content the
+     name — the one part that must stay readable — was the thing that
+     got squashed, and it clipped mid-letter rather than wrapping.
+     Pin the name's height, stop it shrinking, and give the tile and
+     the column enough room for two full lines.
+  ══════════════════════════════════════════ */
+  (function(){
+    var css=document.createElement('style');
+    css.id='tileReadability';
+    css.textContent=
+      '.tile-nm{'+
+        'flex:0 0 auto !important;'          /* never squashed by the parent */
+      + 'min-height:2.5em !important;'       /* always room for two lines    */
+      + 'line-height:1.25 !important;'
+      + 'overflow-wrap:anywhere;word-break:break-word;'
+      + 'padding-top:1px;'
+      + '}'
+      + '.tile{min-height:70px !important;padding:7px 8px !important;}'
+      + '.tiles{grid-template-columns:repeat(auto-fill,minmax(132px,1fr)) !important;}'
+      + '.tile-pr{flex:0 0 auto;}'
+      + '.tile-st{flex:0 0 auto;line-height:1.35;}';
+    document.head ? document.head.appendChild(css) : document.documentElement.appendChild(css);
+  })();
+
+  /* Full name on hover / long-press, for the few that still need two lines. */
+  if(typeof renderTiles==='function'){
+    var _rt=renderTiles;
+    renderTiles=function(){
+      _rt.apply(this,arguments);
+      var box=$('pickTiles'); if(!box || !box.querySelectorAll) return;
+      Array.prototype.forEach.call(box.querySelectorAll('.tile'), function(el){
+        var nm=el.querySelector('.tile-nm');
+        if(nm && !el.getAttribute('title')) el.setAttribute('title', nm.textContent);
+      });
+    };
+  }
+
 })();
 
 </script>
