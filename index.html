@@ -776,7 +776,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1787627046964",sk="my_tindahan_build_stamp";
+  var stamp="1787629328157",sk="my_tindahan_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("my_tindahan_users");
     localStorage.removeItem("my_tindahan_store");
@@ -797,7 +797,7 @@ const LS = {
 };
 
 let USERS = (()=>{
-  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$1w8w38t13o2u0u1y4xejw","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$4lvvybwojbveel7at","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$o06qqf1d30q01uvks2e","color":"#1a6e3a","mustChange":true}]);
+  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$1oh8az6npeusyhb5","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$1toea5i1nt7e3a1lb62a3","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$ytt5bujt2cigj5cgpp","color":"#1a6e3a","mustChange":true}]);
   return u;
 })();
 
@@ -1023,7 +1023,7 @@ function cardLabel(c){
    stops PINs sitting in localStorage as readable plain text.
    ════════════════════════════════════════ */
 const PIN_SALT='mystore.pos.v2';
-const PIN_SALT2='5c526341bc3e24030f8bc3f61dea61bb';
+const PIN_SALT2='d261984b2fd3998abb4466c586d48f9c';
 function hashPin(pin){
   let h1=0x811c9dc5, h2=0x1000193;
   const str=PIN_SALT+':'+pin+':'+PIN_SALT;
@@ -2714,7 +2714,7 @@ function dayFigures(){
   const retAmt  = sum(returns,t=>t.total);
   const cogs    = sum(sales,t=>t.cost);
   const pays={};
-  ['cash','card','gcash','maya'].forEach(m=>{
+  ['cash','card','gcash','maya','account'].forEach(m=>{
     const a=sales.filter(t=>t.pay===m);
     pays[m]={n:a.length, amt:sum(a,t=>t.total)};
   });
@@ -2749,7 +2749,8 @@ function readingRows(f){
     line('Cash',peso(f.pays.cash.amt)+' ('+f.pays.cash.n+')')+
     line('GCash',peso(f.pays.gcash.amt)+' ('+f.pays.gcash.n+')')+
     line('Maya',peso(f.pays.maya.amt)+' ('+f.pays.maya.n+')')+
-    line('Card',peso(f.pays.card.amt)+' ('+f.pays.card.n+')')+hr+
+    line('Card',peso(f.pays.card.amt)+' ('+f.pays.card.n+')')+
+    line('Utang (charged)',peso(f.pays.account?f.pays.account.amt:0)+' ('+(f.pays.account?f.pays.account.n:0)+')','var(--orange)')+hr+
     line('Gross profit',peso(f.profit),'var(--green)');
 }
 function drawerRows(f){
@@ -2872,6 +2873,7 @@ function zSlipHtml(z,dup){
     '<div class="birdv"></div>'+
     line('Cash',peso(z.pays.cash.amt))+line('GCash',peso(z.pays.gcash.amt))+
     line('Maya',peso(z.pays.maya.amt))+line('Card',peso(z.pays.card.amt))+
+    line('Utang (charged)',peso(z.pays.account?z.pays.account.amt:0))+
     '<div class="birdv"></div>'+
     line('Opening float',peso(z.drawer.float))+
     line('Expected drawer',peso(z.drawer.expected))+
@@ -2910,6 +2912,7 @@ function printReading(kind){
     '<div class="birdv"></div>'+
     line('Cash',peso(f.pays.cash.amt))+line('GCash',peso(f.pays.gcash.amt))+
     line('Maya',peso(f.pays.maya.amt))+line('Card',peso(f.pays.card.amt))+
+    line('Utang (charged)',peso(f.pays.account?f.pays.account.amt:0))+
     (shiftOpen()?('<div class="birdv"></div>'+line('Opening float',peso(shift.float))+line('Expected drawer',peso(expectedDrawer()))):'')+
   '</div>';
   printHtml(html);
@@ -4424,7 +4427,7 @@ function openCreditCount(){
     var rets =list.filter(function(t){ return t.type==="return"; });
     var sum=function(a,f){ return r2(a.reduce(function(s,x){ return s+(f(x)||0); },0)); };
     var pays={};
-    ["cash","card","gcash","maya"].forEach(function(m){
+    ["cash","card","gcash","maya","account"].forEach(function(m){
       var a=sales.filter(function(t){ return t.pay===m; });
       pays[m]={n:a.length, amt:sum(a,function(t){ return t.total; })};
     });
@@ -4576,6 +4579,8 @@ function openCreditCount(){
       line("GCash", peso(f.pays.gcash.amt)+" ("+f.pays.gcash.n+")")+
       line("Maya", peso(f.pays.maya.amt)+" ("+f.pays.maya.n+")")+
       line("Card", peso(f.pays.card.amt)+" ("+f.pays.card.n+")")+
+      line("Utang (charged)", peso(f.pays.account?f.pays.account.amt:0)+
+           " ("+(f.pays.account?f.pays.account.n:0)+")")+
       dv+
       '<div style="font-size:10px;color:#888;margin-bottom:3px">Cash drawer \u2014 by holder</div>'+
       (function(){
@@ -6666,6 +6671,479 @@ function openCreditCount(){
       sell.appendChild(b);
     }
     updateHoldBadge();
+  }
+  var _ot=_openTab;
+  _openTab=function(t){ _ot.apply(this,arguments); try{ wire(); }catch(e){} };
+  try{ wire(); }catch(e){}
+
+})();
+
+
+
+/* ══════════════════════════════════════════════════════════════════
+   v24 — UTANG (CUSTOMER CREDIT)
+
+   The listahan, inside the POS. A sari-sari runs on it, and a till that
+   cannot record it stops being the record of the business the first
+   time somebody takes goods on credit.
+
+   Built the same way as stock: the balance is NEVER a number two places
+   can overwrite. It is derived from an append-only ledger of charges
+   and payments, so it reconciles, it audits, and it will sync between
+   two tills without a fight.
+
+   BIR: an utang sale still issues an Official Receipt. The goods left
+   the store, so the sale happened. What has not happened is the cash,
+   which is why it never touches the drawer or the cash column of the
+   Z-Reading. A payment later is a cash movement, not a second sale.
+════════════════════════════════════════════════════════════════════ */
+(function(){
+
+  function acct(c){ if(c && !c.acct) c.acct=[]; return (c&&c.acct)||[]; }
+  function uid(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'a'+Date.now()+Math.floor(Math.random()*1e6);
+  }
+
+  /* Balance owed, always derived. */
+  window.balanceOf=function(c){
+    return r2(acct(c).reduce(function(s,m){
+      return s + (m.type==='charge' ? m.amount : -m.amount);
+    },0));
+  };
+  window.totalReceivable=function(){
+    return r2(customers.reduce(function(s,c){ return s+balanceOf(c); },0));
+  };
+  function limitOf(c){ return Math.max(0, parseFloat(c && c.limit)||0); }
+
+  /* Oldest unpaid money, for the ageing report. Payments settle the
+     oldest charge first, which is how a shopkeeper actually thinks. */
+  function ageing(c){
+    var charges=acct(c).filter(function(m){ return m.type==='charge'; })
+                       .sort(function(a,b){ return new Date(a.at)-new Date(b.at); });
+    var paid=r2(acct(c).filter(function(m){ return m.type==='payment'; })
+                       .reduce(function(s,m){ return s+m.amount; },0));
+    var out={d7:0,d30:0,over:0,oldest:null};
+    charges.forEach(function(ch){
+      var owed=ch.amount;
+      if(paid>0){ var take=Math.min(paid,owed); owed=r2(owed-take); paid=r2(paid-take); }
+      if(owed<=0) return;
+      if(!out.oldest) out.oldest=ch.at;
+      var days=Math.floor((Date.now()-new Date(ch.at).getTime())/86400000);
+      if(days<=7) out.d7=r2(out.d7+owed);
+      else if(days<=30) out.d30=r2(out.d30+owed);
+      else out.over=r2(out.over+owed);
+    });
+    return out;
+  }
+  window.acctAgeing=ageing;
+
+  function post(c, type, amount, ref, note){
+    var m={id:uid(), at:new Date().toISOString(), type:type, amount:r2(amount),
+           ref:ref||'', by:currentUser?currentUser.name:'\u2014', note:note||''};
+    acct(c).push(m);
+    if(typeof queueAcct==='function') queueAcct(c, m);
+    saveAll();
+    return m;
+  }
+  window.postAcct=post;
+
+  /* ══════════════════════════════════════════
+     CHARGE TO ACCOUNT AT CHECKOUT
+  ══════════════════════════════════════════ */
+  function selectedCust(){
+    var id=($('hCust')||{}).value;
+    return id ? customers.find(function(c){ return String(c.id)===String(id); }) : null;
+  }
+
+  /* A fifth tender button, wired the same way as the other four. */
+  function addAcctButton(){
+    if($('pm-account')) return;
+    var row=document.querySelector('#panel-sell .pmrow'); if(!row) return;
+    row.style.gridTemplateColumns='1fr 1fr';
+    var b=document.createElement('button');
+    b.className='pm'; b.id='pm-account'; b.type='button';
+    b.style.cssText='grid-column:1/-1;background:#3a2a5a;color:#c39bd3;border-color:#5e3480';
+    b.innerHTML='&#128211; Utang &mdash; charge to account';
+    b.onclick=function(){ setPay('account','UTANG (charge to account)'); };
+    row.appendChild(b);
+  }
+
+  var _setPay=setPay;
+  setPay=function(m,lbl){
+    if(m==='account'){
+      var c=selectedCust();
+      if(!c){
+        toast('Pick the customer first \u2014 an utang needs a name against it',3200,'#e74c3c');
+        try{ showTab('customers'); }catch(e){}
+        return;
+      }
+    }
+    _setPay.apply(this,arguments);
+    /* The template only knows four buttons; keep the fifth in step. */
+    ['cash','card','gcash','maya','account'].forEach(function(p){
+      var b=$('pm-'+p); if(b) b.classList.toggle('on', p===m);
+    });
+    if($('cashSec')) $('cashSec').style.display = (m==='cash') ? 'block' : 'none';
+    var bar=$('acctBar');
+    if(bar){
+      var c=selectedCust();
+      if(m==='account' && c){
+        var bal=balanceOf(c), lim=limitOf(c);
+        bar.style.display='block';
+        bar.innerHTML='&#128211; <b>'+esc(c.name)+'</b> owes <b>'+peso(bal)+'</b>'+
+          (lim?' of a '+peso(lim)+' limit':' \u00b7 <span style="color:var(--orange)">no limit set</span>');
+      } else bar.style.display='none';
+    }
+  };
+
+  function acctBar(){
+    if($('acctBar')) return;
+    var row=document.querySelector('#panel-sell .pmrow'); if(!row||!row.parentNode) return;
+    var d=document.createElement('div');
+    d.id='acctBar';
+    d.style.cssText='display:none;font-size:10px;color:#c39bd3;background:#2a1f3a;border:1px solid #5e3480;'+
+      'border-radius:3px;padding:5px 9px;margin:0 8px 4px;line-height:1.5';
+    row.parentNode.insertBefore(d, row);
+  }
+
+  var _co=checkout;
+  var override=false;
+  checkout=function(){
+    if(payMethod!=='account') return _co.apply(this,arguments);
+
+    var c=selectedCust();
+    if(!c){ toast('Pick the customer first','2200','#e74c3c'); return; }
+    if(c.cardActive===false){ toast(c.name+"'s account is blocked",2600,'#e74c3c'); return; }
+    var t=cartTotals();
+    var bal=balanceOf(c), lim=limitOf(c), after=r2(bal+t.total);
+
+    if(!override && lim>0 && after>lim){
+      openModal('<div class="mbox">'+mHead('&#9888; Over the credit limit')+
+        '<div class="mwarn"><b>'+esc(c.name)+'</b> would owe <b>'+peso(after)+'</b>, over the '+
+        peso(lim)+' limit set for this account.</div>'+
+        '<div class="minfobox">'+
+          '<div class="mi-row">Owes now: <span>'+peso(bal)+'</span></div>'+
+          '<div class="mi-row">This sale: <span>'+peso(t.total)+'</span></div>'+
+          '<div class="mi-row">Would owe: <span style="color:var(--red)">'+peso(after)+'</span></div>'+
+        '</div>'+
+        '<div class="mnote">A manager can allow it this once. The limit itself is changed in the customer record.</div>'+
+        '<div class="m2btn">'+
+          '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Cancel</button>'+
+          '<button onclick="allowOverLimit()" style="background:#922b21;color:#fff;border:none">Manager: allow</button>'+
+        '</div></div>');
+      return;
+    }
+    if(!override && lim===0){
+      /* No limit set is not the same as an unlimited limit. Say so once. */
+      toast('No credit limit set for '+c.name+' \u2014 charging anyway',3000,'#e67e22');
+    }
+
+    var before=counters.inv;
+    var out=_co.apply(this,arguments);
+    override=false;
+    if(counters.inv>before && lastRcpt && lastRcpt.custId){
+      var cu=customers.find(function(x){ return String(x.id)===String(lastRcpt.custId); });
+      if(cu){
+        post(cu,'charge',lastRcpt.total,lastRcpt.inv,'sale on account');
+        lastRcpt.onAccount=true;
+        lastRcpt.balanceAfter=balanceOf(cu);
+        saveAll();
+        toast('&#128211; Charged to '+cu.name+' \u2014 now owes '+peso(balanceOf(cu)),4500,'#c39bd3');
+      }
+    }
+    return out;
+  };
+  window.allowOverLimit=function(){
+    closeModal();
+    requireMgr(function(){ override=true; checkout(); });
+  };
+
+  /* The receipt must say it was not paid. */
+  if(typeof birHtml==='function'){
+    var _bir=birHtml;
+    birHtml=function(r,dup){
+      var html=_bir.apply(this,arguments);
+      if(r && (r.onAccount || String(r.pay).toLowerCase()==='account')){
+        html=html.replace('<div class="birdv"></div><div class="birc" style="font-size:9px">',
+          '<div class="birdv"></div>'+
+          '<div class="birc" style="font-weight:700;font-size:11px">*** CHARGED TO ACCOUNT \u2014 NOT PAID ***</div>'+
+          '<div class="birr"><span>Account of</span><span>'+esc(r.custName||'')+'</span></div>'+
+          (r.balanceAfter!==undefined
+            ? '<div class="birr"><span>Balance now</span><span>'+peso(r.balanceAfter)+'</span></div>' : '')+
+          '<div style="font-size:9px;margin-top:6px">Received the goods: ______________________</div>'+
+          '<div class="birdv"></div><div class="birc" style="font-size:9px">');
+      }
+      return html;
+    };
+  }
+
+  /* ══════════════════════════════════════════
+     COLLECTING A PAYMENT
+     A payment is not a sale. It never touches sales figures or VAT; it
+     is cash arriving in the drawer against money already recorded.
+  ══════════════════════════════════════════ */
+  window.collectModal=function(idx){
+    var c=customers[idx]; if(!c) return;
+    var bal=balanceOf(c);
+    if(bal<=0){ toast(c.name+' owes nothing',2200,'#2ecc71'); return; }
+    var ag=ageing(c);
+    openModal('<div class="mbox">'+mHead('&#128176; Collect payment \u2014 '+esc(c.name))+
+      '<div class="minfobox">'+
+        '<div class="mi-name">Owes '+peso(bal)+'</div>'+
+        '<div class="mi-row">0\u20137 days: <span>'+peso(ag.d7)+'</span></div>'+
+        '<div class="mi-row">8\u201330 days: <span>'+peso(ag.d30)+'</span></div>'+
+        '<div class="mi-row">Over 30 days: <span style="color:'+(ag.over>0?'var(--red)':'var(--text2)')+'">'+peso(ag.over)+'</span></div>'+
+      '</div>'+
+      '<label class="mlbl">Amount received</label>'+
+      '<input class="minp" id="pyAmt" type="number" min="0" step="0.01" value="'+bal.toFixed(2)+'" />'+
+      '<label class="mlbl">Paid in</label>'+
+      '<select id="pyHow" class="mrow-in" style="margin-bottom:8px">'+
+        '<option value="cash">Cash \u2014 goes into the drawer</option>'+
+        '<option value="gcash">GCash</option>'+
+        '<option value="maya">Maya</option>'+
+      '</select>'+
+      buildMNP('pyAmt')+
+      '<div class="mnote">This is not a sale and does not appear in sales or VAT. Cash payments are recorded '+
+      'as money arriving in the drawer, so your shift still balances.</div>'+
+      '<button class="mok" onclick="doCollect('+idx+')">&#10003; Record payment</button></div>');
+  };
+
+  window.doCollect=function(idx){
+    var c=customers[idx]; if(!c) return;
+    var amt=parseFloat(($('pyAmt')||{}).value)||0;
+    var how=($('pyHow')||{}).value||'cash';
+    var bal=balanceOf(c);
+    if(amt<=0){ toast('Enter an amount','1800','#e74c3c'); return; }
+    if(amt>bal+0.004){ toast('That is more than the '+peso(bal)+' owed','2600','#e74c3c'); return; }
+    var m=post(c,'payment',amt,'PAY-'+new Date().toISOString().slice(0,10),how);
+    /* Cash in hand belongs to the drawer, not to sales. */
+    if(how==='cash' && typeof shiftOpen==='function' && shiftOpen()){
+      shift.moves=shift.moves||[];
+      shift.moves.push({type:'in', amt:r2(amt), why:'utang payment \u2014 '+c.name,
+        by:currentUser?currentUser.name:'\u2014', at:new Date().toISOString()});
+    }
+    saveAll(); closeModal();
+    try{ renderCustomers(); renderShiftBar(); }catch(e){}
+    printHtml(payslipHtml(c,m,balanceOf(c)));
+    toast('\u2713 '+peso(amt)+' received \u2014 '+c.name+' now owes '+peso(balanceOf(c)),4500);
+  };
+
+  function payslipHtml(c,m,after){
+    var line=function(l,v){ return '<div class="birr"><span>'+l+'</span><span>'+v+'</span></div>'; };
+    return '<div class="bir">'+
+      '<div class="birt">'+esc(STORE.name)+'</div>'+
+      '<div class="birc" style="font-size:10px">'+esc(STORE.addr)+'</div>'+
+      '<div class="birdv"></div>'+
+      '<div class="birc" style="font-weight:700;font-size:11px">ACKNOWLEDGEMENT OF PAYMENT</div>'+
+      '<div class="birc" style="font-size:9px;color:#666">Not a sales document \u2014 the OR was issued with the goods</div>'+
+      '<div class="birdv"></div>'+
+      line('Date', new Date(m.at).toLocaleString('en-PH',{month:'short',day:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}))+
+      line('Account', esc(c.name))+
+      line('Received by', esc(m.by))+
+      line('Paid in', esc(String(m.note||'cash').toUpperCase()))+
+      '<div class="birdv"></div>'+
+      '<div class="birtot"><span>AMOUNT RECEIVED</span><span>'+peso(m.amount)+'</span></div>'+
+      line('Balance still owed', peso(after))+
+      '<div class="birdv"></div>'+
+      '<div style="font-size:9px;margin-top:6px">Received by: ______________________</div>'+
+      '<div style="font-size:9px;margin-top:4px">Customer: ________________________</div>'+
+    '</div>';
+  }
+
+  /* ══════════════════════════════════════════
+     STATEMENT
+  ══════════════════════════════════════════ */
+  window.showStatement=function(idx){
+    var c=customers[idx]; if(!c) return;
+    var rows=acct(c).slice().sort(function(a,b){ return new Date(a.at)-new Date(b.at); });
+    if(!rows.length){ toast(c.name+' has no account activity',2200); return; }
+    var run=0;
+    var body=rows.map(function(m){
+      run = r2(run + (m.type==='charge'? m.amount : -m.amount));
+      return '<tr><td style="white-space:nowrap">'+new Date(m.at).toLocaleDateString('en-PH',
+               {month:'short',day:'numeric'})+'</td>'+
+        '<td>'+esc(m.ref||'')+'<div style="font-size:9px;color:var(--text3)">'+esc(m.note||'')+'</div></td>'+
+        '<td class="r" style="color:var(--orange)">'+(m.type==='charge'?peso(m.amount):'')+'</td>'+
+        '<td class="r" style="color:var(--green)">'+(m.type==='payment'?peso(m.amount):'')+'</td>'+
+        '<td class="r"><b>'+peso(run)+'</b></td></tr>';
+    }).join('');
+    openModal('<div class="mbox" style="width:380px">'+mHead('&#128209; Statement \u2014 '+esc(c.name))+
+      '<div style="max-height:300px;overflow-y:auto"><table class="mtbl"><thead><tr>'+
+      '<th>Date</th><th>Ref</th><th class="r">Utang</th><th class="r">Bayad</th><th class="r">Balance</th>'+
+      '</tr></thead><tbody>'+body+'</tbody></table></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;'+
+        'border-top:1px solid var(--border);margin-top:8px;padding-top:8px">'+
+        '<span>Balance owed</span><span style="color:var(--yellow)">'+peso(balanceOf(c))+'</span></div>'+
+      '<div class="m2btn" style="margin-top:9px">'+
+        '<button onclick="printStatement('+idx+')" style="background:#1a5c8a;color:#fff;border:none">&#128438; Print</button>'+
+        '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Close</button>'+
+      '</div></div>');
+  };
+  window.printStatement=function(idx){
+    var c=customers[idx]; if(!c) return;
+    var rows=acct(c).slice().sort(function(a,b){ return new Date(a.at)-new Date(b.at); });
+    var run=0, ag=ageing(c);
+    var body=rows.map(function(m){
+      run=r2(run+(m.type==='charge'?m.amount:-m.amount));
+      return '<div class="birr" style="font-size:10px"><span>'+
+        new Date(m.at).toLocaleDateString('en-PH',{month:'short',day:'numeric'})+' '+esc(m.ref||'')+'</span>'+
+        '<span>'+(m.type==='charge'?'':'-')+peso(m.amount)+' \u00b7 '+peso(run)+'</span></div>';
+    }).join('');
+    printHtml('<div class="bir">'+
+      '<div class="birt">'+esc(STORE.name)+'</div>'+
+      '<div class="birc" style="font-size:10px">'+esc(STORE.addr)+'</div>'+
+      '<div class="birdv"></div>'+
+      '<div class="birc" style="font-weight:700;font-size:11px">STATEMENT OF ACCOUNT</div>'+
+      '<div class="birc" style="font-size:10px">'+esc(c.name)+(c.phone?' \u00b7 '+esc(c.phone):'')+'</div>'+
+      '<div class="birc" style="font-size:9px;color:#666">'+new Date().toLocaleString('en-PH')+'</div>'+
+      '<div class="birdv"></div>'+body+'<div class="birdv"></div>'+
+      '<div class="birtot"><span>BALANCE OWED</span><span>'+peso(balanceOf(c))+'</span></div>'+
+      '<div class="birr"><span>0\u20137 days</span><span>'+peso(ag.d7)+'</span></div>'+
+      '<div class="birr"><span>8\u201330 days</span><span>'+peso(ag.d30)+'</span></div>'+
+      '<div class="birr"><span>over 30 days</span><span>'+peso(ag.over)+'</span></div>'+
+      '<div class="birdv"></div>'+
+      '<div style="font-size:9px;margin-top:6px">Conforme: ______________________</div>'+
+    '</div>');
+  };
+
+  /* ══════════════════════════════════════════
+     THE LEDGER — who owes what, and how old it is
+  ══════════════════════════════════════════ */
+  window.showUtangBook=function(){
+    var list=customers.map(function(c,i){ return {c:c,i:i,bal:balanceOf(c),ag:ageing(c)}; })
+                      .filter(function(x){ return x.bal>0.004; })
+                      .sort(function(a,b){ return b.ag.over-a.ag.over || b.bal-a.bal; });
+    var tot=totalReceivable();
+    if(!list.length){ toast('Nobody owes anything \u2014 the book is clear',2800,'#2ecc71'); return; }
+    var t7=r2(list.reduce(function(s,x){ return s+x.ag.d7; },0));
+    var t30=r2(list.reduce(function(s,x){ return s+x.ag.d30; },0));
+    var tov=r2(list.reduce(function(s,x){ return s+x.ag.over; },0));
+    openModal('<div class="mbox" style="width:390px">'+mHead('&#128211; Utang book')+
+      '<div class="minfobox">'+
+        '<div class="mi-name">Total out on credit: '+peso(tot)+'</div>'+
+        '<div class="mi-row">0\u20137 days: <span>'+peso(t7)+'</span></div>'+
+        '<div class="mi-row">8\u201330 days: <span>'+peso(t30)+'</span></div>'+
+        '<div class="mi-row">Over 30 days: <span style="color:'+(tov>0?'var(--red)':'var(--text2)')+'">'+peso(tov)+'</span></div>'+
+      '</div>'+
+      '<div style="max-height:280px;overflow-y:auto"><table class="mtbl"><thead><tr>'+
+      '<th>Customer</th><th class="r">Owes</th><th class="r">Over 30d</th><th></th></tr></thead><tbody>'+
+      list.map(function(x){
+        return '<tr><td>'+esc(x.c.name)+'<div style="font-size:9px;color:var(--text3)">'+
+            esc(x.c.phone||'')+(limitOf(x.c)?' \u00b7 limit '+peso(limitOf(x.c)):' \u00b7 no limit')+'</div></td>'+
+          '<td class="r" style="color:var(--yellow)"><b>'+peso(x.bal)+'</b></td>'+
+          '<td class="r" style="color:'+(x.ag.over>0?'var(--red)':'var(--text3)')+'">'+
+            (x.ag.over>0?peso(x.ag.over):'\u2014')+'</td>'+
+          '<td style="white-space:nowrap">'+
+            '<button onclick="collectModal('+x.i+')" style="background:#1a6e3a;color:#fff;border:none;'+
+              'border-radius:2px;font-size:9px;padding:3px 6px;cursor:pointer;margin-right:2px">Bayad</button>'+
+            '<button onclick="showStatement('+x.i+')" style="background:none;border:1px solid var(--border);'+
+              'border-radius:2px;color:var(--text4);font-size:9px;padding:3px 6px;cursor:pointer">Statement</button>'+
+          '</td></tr>';
+      }).join('')+'</tbody></table></div>'+
+      '<div class="m2btn" style="margin-top:9px">'+
+        '<button onclick="exportUtangCsv()" style="background:#1a5c8a;color:#fff;border:none">&#8659; CSV</button>'+
+        '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Close</button>'+
+      '</div></div>');
+  };
+  window.exportUtangCsv=function(){
+    var rows=[['customer','phone','limit','balance','0_7_days','8_30_days','over_30_days','oldest_unpaid'].join(',')];
+    customers.forEach(function(c){
+      var b=balanceOf(c); if(b<=0.004) return;
+      var a=ageing(c);
+      rows.push([c.name,c.phone||'',limitOf(c),b,a.d7,a.d30,a.over,
+        a.oldest?new Date(a.oldest).toISOString().slice(0,10):''].map(csvCell).join(','));
+    });
+    dlFile('utang_'+new Date().toISOString().slice(0,10)+'.csv', rows.join('\n'));
+    toast('Utang book exported');
+  };
+
+  /* ══════════════════════════════════════════
+     WIRING
+  ══════════════════════════════════════════ */
+  var _rc=renderCustomers;
+  renderCustomers=function(){
+    _rc.apply(this,arguments);
+    var tb=$('custBody'); if(!tb||!tb.querySelectorAll) return;
+    /* Balance column, and the two buttons that matter, per row. */
+    Array.prototype.forEach.call(tb.querySelectorAll('tr'), function(tr){
+      var btn=tr.querySelector && tr.querySelector('button[onclick^="useCustomer"]');
+      if(!btn) return;
+      var m=/useCustomer\((\d+)\)/.exec(btn.getAttribute('onclick')||'');
+      if(!m) return;
+      var i=parseInt(m[1],10), c=customers[i];
+      if(!c || tr.querySelector('.utangCell')) return;
+      var bal=balanceOf(c);
+      if(bal>0.004){
+        var td=tr.querySelector('td:nth-child(7)') || tr.lastElementChild.previousElementSibling;
+        if(td){
+          var s=document.createElement('div');
+          s.className='utangCell';
+          s.style.cssText='font-size:9px;color:var(--yellow)';
+          s.innerHTML='utang '+peso(bal);
+          td.appendChild(s);
+        }
+      }
+      var act=tr.lastElementChild;
+      if(act && !act.querySelector('.utangBtn')){
+        var b=document.createElement('button');
+        b.className='utangBtn';
+        b.style.cssText='background:none;border:1px solid #4a3a6a;border-radius:2px;color:#c39bd3;'+
+          'font-size:9px;padding:2px 5px;cursor:pointer;margin-right:2px';
+        b.innerHTML=bal>0.004?'Bayad':'Utang';
+        b.onclick=(bal>0.004)? (function(k){ return function(){ collectModal(k); }; })(i)
+                             : (function(k){ return function(){ showStatement(k); }; })(i);
+        act.insertBefore(b, act.firstChild);
+      }
+    });
+  };
+
+  /* Credit limit on the customer form. */
+  var _cfm=custFormModal;
+  custFormModal=function(idx, focusCard, presetCard){
+    _cfm.apply(this,arguments);
+    var host=$('cf-pts'); if(!host||!host.parentNode) return;
+    if($('cf-limit')) return;
+    var c=(idx>=0)?customers[idx]:null;
+    var w=document.createElement('div');
+    w.innerHTML='<label class="mlbl">Credit limit (utang ceiling, 0 = none set)</label>'+
+      '<input class="mrow-in" id="cf-limit" type="number" min="0" step="10" value="'+
+      (c?limitOf(c):0)+'" style="margin-bottom:10px" />'+
+      (c&&balanceOf(c)>0.004
+        ? '<div class="mwarn" style="margin-bottom:8px">Currently owes <b>'+peso(balanceOf(c))+'</b>.</div>'
+        : '');
+    host.parentNode.insertBefore(w, host.nextSibling);
+  };
+  var _scf=saveCustForm;
+  saveCustForm=function(idx){
+    var lim=parseFloat(($('cf-limit')||{}).value);
+    _scf.apply(this,arguments);
+    if(!isNaN(lim)){
+      var c=(idx<0)?customers[customers.length-1]:customers[idx];
+      if(c){ c.limit=Math.max(0,lim); saveAll(); }
+    }
+  };
+
+  function wire(){
+    addAcctButton(); acctBar();
+    var bar=document.querySelector('#panel-customers .tbar');
+    if(bar && !$('btnUtang')){
+      var b=document.createElement('button');
+      b.id='btnUtang'; b.type='button'; b.className='btn';
+      b.style.cssText='height:28px;padding:0 10px;background:#5e3480;color:#fff';
+      b.innerHTML='&#128211; Utang book';
+      b.onclick=function(){ showUtangBook(); };
+      bar.appendChild(b);
+    }
+    var rep=document.querySelector('#panel-reports .tbar');
+    if(rep && !$('btnUtang2')){
+      var r=document.createElement('button');
+      r.id='btnUtang2'; r.type='button'; r.className='btn';
+      r.style.cssText='height:28px;padding:0 10px;background:#5e3480;color:#fff';
+      r.innerHTML='&#128211; Utang book';
+      r.onclick=function(){ showUtangBook(); };
+      rep.appendChild(r);
+    }
   }
   var _ot=_openTab;
   _openTab=function(t){ _ot.apply(this,arguments); try{ wire(); }catch(e){} };
