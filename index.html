@@ -776,7 +776,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1787622856572",sk="my_tindahan_build_stamp";
+  var stamp="1787625334755",sk="my_tindahan_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("my_tindahan_users");
     localStorage.removeItem("my_tindahan_store");
@@ -797,7 +797,7 @@ const LS = {
 };
 
 let USERS = (()=>{
-  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$1lg1p03ohsgmr1ohkyni","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$10g8tpc11veu6n1jrcet5","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$1f2mzb140ehlu1rde9ta","color":"#1a6e3a","mustChange":true}]);
+  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$536iuzs6bn3r13021bn","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$aa2xsrbczikr11lvzrc","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$dvolso21pf401s2xqjo","color":"#1a6e3a","mustChange":true}]);
   return u;
 })();
 
@@ -1023,7 +1023,7 @@ function cardLabel(c){
    stops PINs sitting in localStorage as readable plain text.
    ════════════════════════════════════════ */
 const PIN_SALT='mystore.pos.v2';
-const PIN_SALT2='d17723791cea283814aaa373ac527b6d';
+const PIN_SALT2='964fdf62f39efef7918bc1e61cc04095';
 function hashPin(pin){
   let h1=0x811c9dc5, h2=0x1000193;
   const str=PIN_SALT+':'+pin+':'+PIN_SALT;
@@ -2789,7 +2789,7 @@ function zReading(preAuthed){
       readingRows(f)+
       '<div style="border-top:1px solid var(--border);margin:8px 0"></div>'+drawerRows(f)+
       (shiftOpen()?('<label class="mlbl" style="margin-top:8px">Actual cash counted in drawer</label>'+
-        '<input class="minp" id="zCount" type="number" min="0" step="0.01" placeholder="0.00" value="'+(pendingShiftClose?pendingShiftClose.counted:'')+'" oninput="zVariance()" />'+
+        '<input class="minp" id="zCount" type="number" min="0" step="0.01" placeholder="0.00" value="'+(pendingShiftClose?pendingShiftClose.counted:'')+'" oninput="zVariance()" />'+buildMNP('zCount')+
         '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;padding:4px 2px"><span style="color:var(--text3)">Over / (Short)</span><span id="zVar" style="color:var(--yellow);font-family:\'Courier New\',monospace">\u20b10.00</span></div>'):'')+
       '<div class="mwarn" style="margin-top:8px">&#9888; This finalises '+bizDate+'. Day counters reset, the shift closes and the reading is archived permanently. Sales for the day can no longer be voided \u2014 only returned.</div>'+
       '<div class="m2btn"><button onclick="cancelZ()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Cancel</button>'+
@@ -4799,6 +4799,7 @@ function openCreditCount(){
       '<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;padding:4px 2px 8px">'+
         '<span style="color:var(--text3)">Over / (Short)</span>'+
         '<span id="csVarTxt" style="color:var(--yellow);font-family:Courier New,monospace">&#8369;0.00</span></div>'+
+      buildMNP('csCount')+
       '<label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);cursor:pointer;margin-bottom:9px">'+
         '<input type="checkbox" id="csPrint" checked style="width:14px;height:14px;cursor:pointer" />'+
         'Print the shift report (all receipt numbers issued this shift) on time-out</label>'+
@@ -6006,6 +6007,128 @@ function openCreditCount(){
       Array.prototype.forEach.call(box.querySelectorAll('.tile'), function(el){
         var nm=el.querySelector('.tile-nm');
         if(nm && !el.getAttribute('title')) el.setAttribute('title', nm.textContent);
+      });
+    };
+  }
+
+})();
+
+/* ══════════════════════════════════════════════════════════════════
+   v22 — THE ON-SCREEN KEYPAD FOLLOWS FOCUS
+
+   buildMNP(tid) baked ONE target id into every key:
+
+       onclick="mNpKey('7','fpA')"
+
+   Fine while a modal had a single number in it. The forced PIN change
+   has two — New PIN and Repeat PIN — and only one keypad, wired to the
+   first. So tapping the pad while Repeat was selected typed into New
+   PIN, which is exactly the reported "it goes back to the new PIN box".
+
+   The keypad now types into whichever field you last touched, shows you
+   which one that is, and moves on by itself when a field is full.
+   Nothing that already worked changes: the baked-in id stays as the
+   fallback for the single-field modals.
+════════════════════════════════════════════════════════════════════ */
+(function(){
+
+  var active=null;
+
+  function eligible(el){
+    if(!el || el.tagName!=='INPUT' || el.disabled || el.readOnly) return false;
+    if(el.type==='number' || el.type==='password') return true;
+    return !!(el.className && String(el.className).indexOf('minp')>=0);
+  }
+  function fields(scope){
+    if(!scope || !scope.querySelectorAll) return [];
+    return Array.prototype.filter.call(scope.querySelectorAll('input'), eligible);
+  }
+  function paint(){
+    /* The cashier must be able to SEE where the digits are going. */
+    var mw=$('mw'), panel=document.getElementById('userCardsList');
+    [mw, panel].forEach(function(scope){
+      fields(scope).forEach(function(el){
+        var on = active && el.id===active;
+        el.style.outline      = on ? '2px solid #5dade2' : '';
+        el.style.outlineOffset= on ? '-1px' : '';
+      });
+    });
+  }
+  function setActive(id){ active=id; paint(); }
+  window.mnpActive=function(){ return active; };
+
+  try{
+    document.addEventListener('focusin', function(e){
+      if(eligible(e.target) && e.target.id) setActive(e.target.id);
+    });
+    document.addEventListener('click', function(e){
+      if(eligible(e.target) && e.target.id) setActive(e.target.id);
+    });
+  }catch(e){}
+
+  /* A fresh modal starts on its first number box. */
+  if(typeof openModal==='function'){
+    var _om=openModal;
+    openModal=function(html){
+      _om(html);
+      try{
+        var f=fields($('mw'));
+        active = f.length ? f[0].id : null;
+        paint();
+      }catch(e){}
+    };
+  }
+  if(typeof closeModal==='function'){
+    var _cm=closeModal;
+    closeModal=function(){ active=null; return _cm.apply(this,arguments); };
+  }
+
+  /* Route the key to the field the cashier is actually on. */
+  if(typeof mNpKey==='function'){
+    var _mk=mNpKey;
+    mNpKey=function(k, id){
+      var target = (active && $(active)) ? active : id;
+      var el=$(target);
+      if(!el) return _mk.call(this,k,id);
+      _mk.call(this,k,target);
+
+      /* Full field, and another one after it: move along. */
+      var max=parseInt(el.getAttribute && el.getAttribute('maxlength'),10)||0;
+      if(k!=='C' && k!=='Del' && max>0 && String(el.value).length>=max){
+        var scope = ($('mw') && $('mw').contains && $('mw').contains(el)) ? $('mw')
+                  : document.getElementById('userCardsList');
+        var f=fields(scope);
+        for(var i=0;i<f.length-1;i++){
+          if(f[i].id===target && String(f[i+1].value||'').length<
+             (parseInt(f[i+1].getAttribute('maxlength'),10)||99)){
+            setActive(f[i+1].id);
+            try{ f[i+1].focus(); }catch(e){}
+            break;
+          }
+        }
+      }
+      paint();
+    };
+  }
+
+  /* ── keypads that were missing entirely ──
+     Counting the drawer had no on-screen pad at all. On a till with no
+     physical keyboard that made closing a shift impossible to complete. */
+  if(typeof renderUserCards==='function'){
+    var _ruc2=renderUserCards;
+    renderUserCards=function(){
+      _ruc2.apply(this,arguments);
+      var list=$('userCardsList'); if(!list) return;
+      Array.prototype.forEach.call(list.children||[], function(card, idx){
+        if($('upinpad-'+idx)) return;
+        var host=document.createElement('div');
+        host.id='upinpad-'+idx;
+        host.style.cssText='margin-top:8px';
+        host.innerHTML='<div style="font-size:10px;color:var(--text3);margin-bottom:4px">'+
+          'Tap <b>New PIN</b> or <b>Confirm PIN</b> above, then use this pad. '+
+          'The highlighted box is the one being typed into.</div>'+
+          buildMNP('upin-'+idx);
+        card.appendChild(host);
       });
     };
   }
