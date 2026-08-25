@@ -776,7 +776,7 @@ td.r{text-align:right}
 
 // == BOOTSTRAP: force-seed on fresh deploy ==
 (function(){
-  var stamp="1787643188086",sk="my_tindahan_build_stamp";
+  var stamp="1787644498598",sk="my_tindahan_build_stamp";
   if(localStorage.getItem(sk)!==stamp){
     localStorage.removeItem("my_tindahan_users");
     localStorage.removeItem("my_tindahan_store");
@@ -797,7 +797,7 @@ const LS = {
 };
 
 let USERS = (()=>{
-  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$17ka6rz2rep8317ggboo","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$1wbyv851gnk9u51j2aw76","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$1bj3p5eixiorl6fywal","color":"#1a6e3a","mustChange":true}]);
+  const u = LS.get('my_tindahan_users',[{"id":1,"name":"Reymar Arroyo","role":"Manager","pin":"h2$2fdmgb1thck2k1goxnf6","color":"#8e44ad","mustChange":true},{"id":2,"name":"Reese Khalid","role":"Cashier","pin":"h2$psm9x81aogfb6qv7e8o","color":"#1a5c8a","mustChange":true},{"id":3,"name":"Steffanie Rae","role":"Cashier","pin":"h2$aqz2yw12stsdzr94unk","color":"#1a6e3a","mustChange":true}]);
   return u;
 })();
 
@@ -1023,7 +1023,7 @@ function cardLabel(c){
    stops PINs sitting in localStorage as readable plain text.
    ════════════════════════════════════════ */
 const PIN_SALT='mystore.pos.v2';
-const PIN_SALT2='3c9a9f80121f1f133c10441ce84a7fe8';
+const PIN_SALT2='858d06b7bb4869883d008bd90ebd21ec';
 function hashPin(pin){
   let h1=0x811c9dc5, h2=0x1000193;
   const str=PIN_SALT+':'+pin+':'+PIN_SALT;
@@ -8209,6 +8209,252 @@ function openCreditCount(){
   var _ot=_openTab;
   _openTab=function(t){ _ot.apply(this,arguments); try{ wire(); }catch(e){} };
   try{ wire(); }catch(e){}
+
+})();
+
+
+
+/* ══════════════════════════════════════════════════════════════════
+   v31 — ROLE ACCESS
+
+   28 destructive ACTIONS were already gated. What was not gated at all
+   was WHERE a cashier could go. Every tab was reachable with no PIN:
+   Reports (your margins and net profit), Item List (your cost prices),
+   Register Item, Stock-in, Waste/Exp (writing off stock), Customers
+   (credit limits). A cashier could read exactly what your suppliers
+   charge you and write goods off the books, without a single prompt.
+
+   Two additions:
+     1. Tabs are permissioned by role, and the permissions are yours to
+        set — stores differ, so this is configuration rather than dogma.
+     2. A short manager-override window, so a manager standing at the
+        till types the PIN once instead of five times. It deliberately
+        does NOT cover Settings or the Z-Reading, and it can be set to
+        zero by anyone who would rather always be asked.
+════════════════════════════════════════════════════════════════════ */
+(function(){
+
+  var ALL=[
+    ['sell','Sell',              false],
+    ['history','History',        false],
+    ['customers','Customers',    false],
+    ['alerts','Alerts',          false],
+    ['stock','Stock-in',         true ],
+    ['items','Item List',        true ],
+    ['reg','Register Item',      true ],
+    ['reports','Reports',        true ],
+    ['waste','Waste / Expense',  true ],
+    ['settings','Settings',      true ]
+  ];
+  /* mgrOnly defaults above; the owner can move any of them. */
+  STORE.perms = STORE.perms || (function(){
+    var p={};
+    ALL.forEach(function(t){ p[t[0]] = !t[2]; });   /* true = cashier may use it */
+    return p;
+  })();
+  function cashierMay(tab){ return STORE.perms[tab] !== false; }
+  function isMgr(){ return !!(currentUser && currentUser.role==='Manager'); }
+
+  /* ── manager override window ── */
+  if(STORE.mgrWindow===undefined) STORE.mgrWindow=90;   /* seconds; 0 = always ask */
+  var mgrUntil=0;
+  var NEVER_CACHED=['settings','zread'];                /* too consequential to cache */
+
+  window.mgrUnlocked=function(){ return Date.now()<mgrUntil; };
+  window.lockManager=function(){
+    mgrUntil=0; paintLock();
+    toast('Manager access locked',2000);
+  };
+  function grant(){
+    var w=Math.max(0, parseInt(STORE.mgrWindow,10)||0);
+    if(w>0){ mgrUntil=Date.now()+w*1000; paintLock(); }
+  }
+
+  var _rm=requireMgr;
+  requireMgr=function(cb, scope){
+    if(isMgr()){ cb(); return; }
+    if(mgrUnlocked() && NEVER_CACHED.indexOf(scope||'')<0){ cb(); return; }
+    _rm(function(){ grant(); cb(); });
+  };
+
+  function paintLock(){
+    var bar=$('shiftBar'); if(!bar) return;
+    var c=$('mgrChip');
+    if(!c){
+      c=document.createElement('button');
+      c.id='mgrChip'; c.type='button'; c.className='sb-btn';
+      c.onclick=function(){ lockManager(); };
+      var ref=$('sbHours');
+      if(ref&&ref.parentNode) ref.parentNode.insertBefore(c,ref); else bar.appendChild(c);
+    }
+    if(isMgr() || !mgrUnlocked()){ c.style.display='none'; return; }
+    var left=Math.ceil((mgrUntil-Date.now())/1000);
+    c.style.display='inline-block';
+    c.innerHTML='&#128275; Manager unlocked '+left+'s \u00b7 tap to lock';
+    c.style.background='#4a2e00'; c.style.color='#f0b27a'; c.style.borderColor='#8a5a1a';
+  }
+  setInterval(function(){ try{ paintLock(); }catch(e){} }, 1000);
+
+  /* ══════════════════════════════════════════
+     TAB ACCESS
+     Restricted tabs are hidden rather than merely blocked: a cashier
+     should not be looking at a Reports button all day wondering.
+  ══════════════════════════════════════════ */
+  function paintTabs(){
+    ALL.forEach(function(t){
+      var el=$('nt-'+t[0]); if(!el) return;
+      var allowed = isMgr() || cashierMay(t[0]) || mgrUnlocked();
+      el.style.display = allowed ? '' : 'none';
+    });
+  }
+  window.paintTabs=paintTabs;
+
+  var _ot=_openTab;
+  _openTab=function(tab){
+    if(isMgr() || cashierMay(tab) || mgrUnlocked()){
+      _ot.apply(this,arguments);
+      try{ paintTabs(); }catch(e){}
+      return;
+    }
+    var label=(ALL.filter(function(t){ return t[0]===tab; })[0]||[,tab])[1];
+    openModal('<div class="mbox">'+mHead('&#128274; '+esc(label)+' is manager-only')+
+      '<div class="mnote">This section is restricted for <b>'+esc(currentUser?currentUser.role:'Cashier')+
+      '</b> accounts. A manager can open it, or change what cashiers may see in '+
+      '<b>Settings \u2192 Who can see what</b>.</div>'+
+      '<div class="m2btn">'+
+        '<button onclick="closeModal()" style="background:var(--bg2);color:var(--text4);border:1px solid var(--border)">Back to Sell</button>'+
+        '<button onclick="unlockTab(\''+esc(tab)+'\')" style="background:#922b21;color:#fff;border:none">Manager PIN</button>'+
+      '</div></div>');
+  };
+  window.unlockTab=function(tab){
+    closeModal();
+    requireMgr(function(){ _ot(tab); paintTabs(); }, tab==='settings'?'settings':'');
+  };
+
+  /* Re-apply on login, because the role changes with the person. */
+  if(typeof doLogin==='function'){
+    var _dl=doLogin;
+    doLogin=function(){
+      var before=currentUser;
+      _dl.apply(this,arguments);
+      if(currentUser!==before){ mgrUntil=0; try{ paintTabs(); paintLock(); }catch(e){} }
+    };
+  }
+  if(typeof doLogout==='function'){
+    var _dlo=doLogout;
+    doLogout=function(){ mgrUntil=0; return _dlo.apply(this,arguments); };
+  }
+
+  /* ══════════════════════════════════════════
+     ACTIONS THAT WERE STILL OPEN
+  ══════════════════════════════════════════ */
+  /* Anything that reveals cost, margin or the expected drawer. */
+  ['showBuyingList','showStaffReport','showExceptionLog','cashProof','inventoryProof',
+   'showStockCard','exportSalesCsv','exportItemsCsv','showStockTake']
+   .forEach(function(fn){
+     if(typeof window[fn]!=='function') return;
+     var orig=window[fn];
+     window[fn]=function(){
+       var self=this, args=arguments;
+       if(isMgr() || mgrUnlocked()) return orig.apply(self,args);
+       requireMgr(function(){ orig.apply(self,args); });
+     };
+   });
+
+  /* Taking money OUT of the drawer is not a cashier decision. Putting it
+     in is, so only the out leg is gated. */
+  if(typeof doCashMove==='function'){
+    var _dcm=doCashMove;
+    doCashMove=function(dir){
+      var d = dir || (window.cmDir || 'in');
+      if(d==='out' && !isMgr() && !mgrUnlocked()){
+        var self=this, args=arguments;
+        requireMgr(function(){ _dcm.apply(self,args); });
+        return;
+      }
+      return _dcm.apply(this,arguments);
+    };
+  }
+
+  /* A credit limit is the store's exposure, not the cashier's. */
+  if(typeof custFormModal==='function'){
+    var _cfm=custFormModal;
+    custFormModal=function(){
+      _cfm.apply(this,arguments);
+      var el=$('cf-limit');
+      if(!el) return;
+      /* Set it both ways. Only ever setting it true leaves the field stuck
+         if the element is reused rather than re-rendered. */
+      var locked = !isMgr() && !mgrUnlocked();
+      el.disabled = locked;
+      el.style.opacity = locked ? '.5' : '';
+      if(locked){
+        if(el.parentNode && !$('cf-limit-note')){
+          var n=document.createElement('div');
+          n.id='cf-limit-note';
+          n.style.cssText='font-size:10px;color:var(--text3);margin:-6px 0 8px';
+          n.textContent='Credit limits can only be changed by a manager.';
+          el.parentNode.insertBefore(n, el.nextSibling);
+        }
+      } else {
+        var old=$('cf-limit-note');
+        if(old && old.parentNode) old.parentNode.removeChild(old);
+      }
+    };
+  }
+
+  /* ══════════════════════════════════════════
+     SETTINGS — who can see what
+  ══════════════════════════════════════════ */
+  function buildPermSettings(){
+    var pb=document.querySelector('#panel-settings .pbody');
+    if(!pb || $('perm-box')) return;
+    var sec=document.createElement('div');
+    sec.className='psec'; sec.id='perm-box';
+    sec.innerHTML=
+      '<div class="pstitle">&#128272; Who can see what</div>'+
+      '<div style="font-size:10px;color:var(--text3);margin-bottom:10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:6px 10px;line-height:1.6">'+
+        'Managers always see everything. Tick what a <b style="color:var(--text2)">Cashier</b> may open. '+
+        'Restricted sections are <b style="color:var(--text2)">hidden</b>, not just blocked \u2014 and a manager '+
+        'can still open any of them with a PIN.<br>'+
+        'The defaults keep your <b style="color:var(--text2)">cost prices, margins and net profit</b> out of sight.'+
+      '</div>'+
+      ALL.map(function(t){
+        return '<label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text2);'+
+          'cursor:pointer;padding:3px 0">'+
+          '<input type="checkbox" id="perm-'+t[0]+'" '+(cashierMay(t[0])?'checked':'')+
+          ' style="width:14px;height:14px;cursor:pointer" /> '+esc(t[1])+
+          (t[2]?' <span style="color:var(--text3);font-size:9px">(manager by default)</span>':'')+
+          '</label>';
+      }).join('')+
+      '<div class="sfield" style="margin-top:10px"><label>Manager override lasts (seconds, 0 = ask every time)</label>'+
+        '<input type="number" id="perm-window" min="0" max="600" step="15" value="'+
+        (STORE.mgrWindow===undefined?90:STORE.mgrWindow)+'" /></div>'+
+      '<div style="font-size:10px;color:var(--text3);margin-bottom:8px;line-height:1.5">'+
+        'After a manager authorises something, further manager actions are allowed for this long without '+
+        're-typing the PIN. <b>Settings and the Z-Reading always ask.</b> Set 0 if the till is ever left '+
+        'unattended.</div>'+
+      '<button class="abtn" style="width:100%" onclick="savePerms()">&#10003; Save access rules</button>';
+    pb.appendChild(sec);
+  }
+  window.savePerms=function(){
+    ALL.forEach(function(t){
+      var el=$('perm-'+t[0]);
+      if(el) STORE.perms[t[0]]=el.checked;
+    });
+    var w=$('perm-window');
+    if(w) STORE.mgrWindow=Math.min(600,Math.max(0,parseInt(w.value,10)||0));
+    saveAll();
+    paintTabs();
+    var open=ALL.filter(function(t){ return cashierMay(t[0]); }).length;
+    toast('\u2713 Cashiers can open '+open+' of '+ALL.length+' sections',4000);
+  };
+
+  var _ls=loadSettings;
+  loadSettings=function(){ _ls(); buildPermSettings(); };
+
+  try{ buildPermSettings(); }catch(e){}
+  try{ paintTabs(); }catch(e){}
 
 })();
 
